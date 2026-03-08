@@ -10,7 +10,7 @@
         public string? FilePath { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public ReportType Status { get;private set; }
-        public Group Group { get; private set; }
+        public Groups Group { get; private set; }
         public UserApp User { get; private set; }
 
         private Report() { }
