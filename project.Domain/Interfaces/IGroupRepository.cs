@@ -2,7 +2,7 @@
 
 namespace project.Domain.Interfaces
 {
-    public interface IGroupRepository : IGenericRepository<Group>
+    public interface IGroupRepository : IGenericRepository<Groups>
     {
     }
 }

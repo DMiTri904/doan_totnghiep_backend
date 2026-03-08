@@ -10,5 +10,10 @@ namespace project.Domain.Interfaces
     public interface IUserRepository : IGenericRepository<UserApp>
     {
         Task<UserApp?> FindByEmailAsync(string email);
+        Task<UserApp?> FindByUserCode(string userCode);
+        Task<bool> IsEmailExistsAsync(string email);
+        Task<string> GetRoleAsync(int id);
+        Task AddRangeAsync(IEnumerable<UserApp> users);
+
     }
 }
