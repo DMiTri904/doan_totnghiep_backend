@@ -20,10 +20,6 @@ namespace project.Infrastructure.Database.ConfigEntity
             builder.Property(u => u.Id)
                 .IsRequired();
 
-            builder.Property(u => u.IdentityId)
-                .IsRequired()
-                .HasMaxLength(100);
-
             builder.Property(u => u.UserName)
                 .IsRequired()
                 .HasMaxLength(100);
@@ -38,7 +34,7 @@ namespace project.Infrastructure.Database.ConfigEntity
             builder.Property(u => u.AvatarUrl)
                 .HasMaxLength(500);
 
-            builder.Property(u => u.StudentCode)
+            builder.Property(u => u.UserCode)
                 .HasMaxLength(20);
 
             builder.Property(u => u.UserRole)

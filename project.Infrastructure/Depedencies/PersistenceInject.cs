@@ -1,10 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using project.Application.Interfaces;
+using project.Domain.Interfaces;
+using project.Domain.Models;
 using project.Infrastructure.Database;
 using project.Infrastructure.Interfaces;
+using project.Infrastructure.Repositories;
+using project.Infrastructure.Security;
 using project.Infrastructure.Services.Email;
+using project.Infrastructure.Services.ExcelImport;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,10 +33,21 @@ namespace project.Infrastructure.Depedencies
                 opt.UseSqlServer(connectionString);
             });
 
-            services.AddDbContext<IdentityDbContext>(opt =>
-            {
-                opt.UseSqlServer(connectionString);
-            });
+            return services;
+        }
+        public static IServiceCollection AddRepositories(this IServiceCollection services)
+        {
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IWorkTaskRepository, WorkTaskRepository>();
+            services.AddScoped<ICommentRepository, CommentRepository>();
+            services.AddScoped<IGroupRepository, GroupRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<ITokenGenerator, TokenGenerator>();
+            services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
             return services;
         }
 
@@ -41,6 +60,38 @@ namespace project.Infrastructure.Depedencies
             services.AddScoped<IEmailService, EmailService>();
             return services;
         }
+    }
+    public static class ExcelImport
+    {
+        public static IServiceCollection AddExcelImport(this IServiceCollection services)
+        {
+            services.AddScoped<IExcelImportService, ExcelImportService>();
+            return services;
+        }
+    }
+    public static class AuthenticationInject
+    {
+        public static IServiceCollection AddAuthentication(this IServiceCollection services, IConfiguration config)
+        {
+            var jwtSettings = config.GetSection("Jwt");
 
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(opt =>
+                {
+                    opt.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+
+                        ValidIssuer = jwtSettings["Issuer"],
+                        ValidAudience = jwtSettings["Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
+                    };
+                });
+            return services;
+        }
     }
 }

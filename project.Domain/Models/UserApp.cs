@@ -13,6 +13,8 @@ namespace project.Domain.Models
         public string Email { get; private set; } = string.Empty;
         public string? AvatarUrl { get; private set; } = string.Empty;
         public string? UserCode { get; private set; } = string.Empty;
+        public string? ResetPasswordToken { get; private set; }
+        public DateTime? ResetPasswordTokenExpiry { get; private set; }
         public UserRole UserRole { get; private set; }
 
         public ICollection<GroupMem> GroupMembers => _groupmembers.AsReadOnly();
@@ -55,6 +57,24 @@ namespace project.Domain.Models
         public void ChangePassword(string passwordHash)
         {
             PasswordHash = passwordHash;
+        }
+
+        public void SetResetPasswordToken(string token, DateTime expiry)
+        {
+            ResetPasswordToken = token;
+            ResetPasswordTokenExpiry = expiry;
+        }
+
+        public void ClearResetPasswordToken()
+        {
+            ResetPasswordToken = null;
+            ResetPasswordTokenExpiry = null;
+        }
+        public bool IsResetTokenValid(string token)
+        {
+            return ResetPasswordToken == token
+                && ResetPasswordTokenExpiry.HasValue
+                && ResetPasswordTokenExpiry.Value > DateTime.UtcNow;
         }
     }
 }

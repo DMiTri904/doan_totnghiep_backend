@@ -7,8 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
-    <Folder Include="ModelsDto\" />
+    <ProjectReference Include="..\project.Domain\project.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.1.0" />
+    <PackageReference Include="MediatR" Version="12.0.1" />
   </ItemGroup>
 
 </Project>

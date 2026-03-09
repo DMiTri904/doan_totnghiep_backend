@@ -12,7 +12,7 @@ namespace project.Infrastructure.Depedencies
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
             {
-                services.AddConnectionDatabase(config).AddEmailService(config);
+                services.AddConnectionDatabase(config).AddEmailService(config).AddRepositories().AddExcelImport();
                 return services;
         }
     }
