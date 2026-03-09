@@ -1,6 +1,8 @@
 ﻿using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using project.Application;
+using project.Application.Interfaces;
 using project.Infrastructure.Exceptions;
 using project.Infrastructure.Interfaces;
 using System;
