@@ -1,10 +1,9 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using project.Application.Features.Command.Auth.Forgot;
 using project.Application.Features.Command.Auth.Login;
+using project.Application.Features.Command.Auth.Reset;
 using project.Application.ModelsDto;
-using project.Application.ModelsDto.DomainModelsDto;
 using project.Presentation.ModelsRequest.Auth;
 
 namespace project.Presentation.Controllers
@@ -33,7 +32,7 @@ namespace project.Presentation.Controllers
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordModel resetPasswordDto)
         {
-            var command = new ResetPasswordCommand(resetPasswordDto);
+            var command = new ResetPasswordCommand(resetPasswordDto.Email, resetPasswordDto.Token, resetPasswordDto.NewPassword, resetPasswordDto.ConfirmPassword);
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
