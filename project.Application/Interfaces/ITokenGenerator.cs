@@ -12,5 +12,6 @@ namespace project.Application.Interfaces
     public interface ITokenGenerator
     {
         Task<TokenModel> CreateToken(UserApp user, bool populateExp);
+        string GenerateResetPasswordToken();
     }
 }
