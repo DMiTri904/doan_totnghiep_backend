@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Org.BouncyCastle.Utilities;
 using project.Application.Interfaces;
 using project.Application.ModelsDto;
 using project.Application.ModelsDto.DomainModelsDto;
@@ -69,7 +70,7 @@ namespace project.Infrastructure.Security
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Name, user.UserName),
             };
@@ -86,6 +87,11 @@ namespace project.Infrastructure.Security
                 rng.GetBytes(randomNumber);
             }
             return Convert.ToBase64String(randomNumber);
+        }
+
+        public string GenerateResetPasswordToken()
+        {
+            return Guid.NewGuid().ToString("N");
         }
     }
 }
