@@ -4,7 +4,7 @@ using project.Application.Features.Command.Auth.Forgot;
 using project.Application.Features.Command.Auth.Login;
 using project.Application.Features.Command.Auth.Reset;
 using project.Application.ModelsDto;
-using project.Presentation.ModelsRequest.Auth;
+using project.Presentation.Models.Auth;
 
 namespace project.Presentation.Controllers
 {
@@ -16,23 +16,23 @@ namespace project.Presentation.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginRequestModel request)
+        public async Task<IActionResult> Login(LoginRequest request)
         {
             var command = new LoginCommand(request.MSSV, request.Password);
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Error);
         }
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword(FortgotPassworModel forgotPasswordDto)
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
         {
-            var command = new ForgotPasswordCommand(forgotPasswordDto.emai,forgotPasswordDto.clientUri);
+            var command = new ForgotPasswordCommand(request.Email, request.ClientUri);
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword(ResetPasswordModel resetPasswordDto)
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
         {
-            var command = new ResetPasswordCommand(resetPasswordDto.Email, resetPasswordDto.Token, resetPasswordDto.NewPassword, resetPasswordDto.ConfirmPassword);
+            var command = new ResetPasswordCommand(request.Email, request.Token, request.NewPassword, request.PasswordConfirm);
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }

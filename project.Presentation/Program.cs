@@ -1,4 +1,6 @@
+﻿using Microsoft.EntityFrameworkCore;
 using project.Application.Dependency;
+using project.Infrastructure.Database;
 using project.Infrastructure.Depedencies;
 
 namespace project.Presentation
@@ -24,12 +26,18 @@ namespace project.Presentation
                           .AllowCredentials();
                 });
             });
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-
-            app.UseHttpsRedirection();
-
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Database.Migrate();
+            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
             app.UseCors("AllowedReactApp");
             app.UseAuthentication();
             app.UseAuthorization();
