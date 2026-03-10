@@ -15,17 +15,14 @@ services:
       - ConnectionStrings__DefaultConnection=Server=db;Database=DOAN;User=sa;Password=Tri@1234;TrustServerCertificate=True 
       - Jwt__Issuer=http://localhost:5000
       - Jwt__Audience=http://localhost:5000
-      - Jwt__Key= 8u2Jvq3bvH4hp46TEPbGLj2wQjCndmZWae81LNWbURW0PrHeXS1VhzdYzerv
-
-      - Cloudinary__CloudName=dydk2khmf
-      - Cloudinary__ApiKey=128476729251592
-      - Cloudinary__ApiSecret=yQvveNLXXi4lLQPjvSiFokQ1k2c
-
-     
+      - Jwt__Key=${JWT_KEY}
+      - Cloudinary__CloudName=${CLOUDINARY_CLOUD_NAME}
+      - Cloudinary__ApiKey=${CLOUDINARY_API_KEY}
+      - Cloudinary__ApiSecret=${CLOUDINARY_API_SECRET}
       - EmailSettings__SmtpServer=smtp.gmail.com
       - EmailSettings__SmtpPort=587
-      - EmailSettings__SmtpUsername=dangminhtri94@gmail.com
-      - EmailSettings__SmtpPassword= "mfhw gdou hslb ctsn"
+      - EmailSettings__SmtpUsername=${SMTP_USERNAME}
+      - EmailSettings__SmtpPassword=${SMTP_PASSWORD}
     depends_on:
       - db
 
