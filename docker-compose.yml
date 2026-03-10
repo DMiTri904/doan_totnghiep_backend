@@ -1,0 +1,44 @@
+
+version: '3.8'
+
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myapi
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=DOAN;User=sa;Password=Tri@1234;TrustServerCertificate=True 
+      - Jwt__Issuer=http://localhost:5000
+      - Jwt__Audience=http://localhost:5000
+      - Jwt__Key= 8u2Jvq3bvH4hp46TEPbGLj2wQjCndmZWae81LNWbURW0PrHeXS1VhzdYzerv
+
+      - Cloudinary__CloudName=dydk2khmf
+      - Cloudinary__ApiKey=128476729251592
+      - Cloudinary__ApiSecret=yQvveNLXXi4lLQPjvSiFokQ1k2c
+
+     
+      - EmailSettings__SmtpServer=smtp.gmail.com
+      - EmailSettings__SmtpPort=587
+      - EmailSettings__SmtpUsername=dangminhtri94@gmail.com
+      - EmailSettings__SmtpPassword= "mfhw gdou hslb ctsn"
+    depends_on:
+      - db
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: myapi-db
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Tri@1234
+    volumes:
+      - sqldata:/var/lib/mssql/data
+
+volumes:
+  sqldata:
