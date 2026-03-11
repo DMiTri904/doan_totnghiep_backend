@@ -10,6 +10,6 @@ using System.Threading.Tasks;
 namespace project.Application.Features.Command.Auth.Forgot
 {
     public sealed record ForgotPasswordCommand(string email, string clientUri) : IRequest<Result>;
-    public record FortgotPassworModel(string emai, string clientUri);
+    
 
 }
