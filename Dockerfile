@@ -15,7 +15,6 @@ ENV ASPNETCORE_URLS=http://+:8080
 
 ENTRYPOINT ["dotnet", "project.Presentation.dll"]
 
-# Create .dockerignore file 
 
 
 

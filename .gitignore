@@ -14,7 +14,9 @@ obj/
 *.userosscache
 *.sln.docstates
 *.env
+publish/
 appsettings.Development.json
+docker-compose.override.yml
 
 
 # User-specific files (MonoDevelop/Xamarin Studio)
