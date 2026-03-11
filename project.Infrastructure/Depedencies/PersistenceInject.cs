@@ -13,6 +13,7 @@ using project.Infrastructure.Repositories;
 using project.Infrastructure.Security;
 using project.Infrastructure.Services.Email;
 using project.Infrastructure.Services.ExcelImport;
+using project.Infrastructure.Services.Photo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,6 +59,15 @@ namespace project.Infrastructure.Depedencies
         {
             services.Configure<EmailConfiguration>(config.GetSection("EmailSettings"));
             services.AddScoped<IEmailService, EmailService>();
+            return services;
+        }
+    }
+    public static class PhotoServiceInject
+    {
+        public static IServiceCollection AddPhotoService(this IServiceCollection services, IConfiguration config)
+        {
+            services.Configure<CloudinarySettings>(config.GetSection("Cloudinary"));
+            services.AddScoped<IPhotoService, PhotoService>();
             return services;
         }
     }
