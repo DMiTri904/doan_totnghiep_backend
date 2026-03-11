@@ -20,8 +20,9 @@ services:
       - Cloudinary__ApiSecret=${CLOUDINARY_API_SECRET}
       - EmailSettings__SmtpServer=smtp.gmail.com
       - EmailSettings__SmtpPort=587
-      - EmailSettings__SmtpUsername=${SMTP_USERNAME}
-      - EmailSettings__SmtpPassword=${SMTP_PASSWORD}
+      - EmailSettings__Username=${SMTP_USERNAME}
+      - EmailSettings__Password=${SMTP_PASSWORD}
+      - EmailSettings__FromAddress=${SMTP_FromAddress}
     depends_on:
       db:
         condition: service_healthy
