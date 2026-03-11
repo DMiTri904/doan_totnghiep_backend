@@ -7,7 +7,7 @@ namespace project.Domain.Models
         public int Id { get; private set; }
         public string Title { get; private set; } = string.Empty;
         public string? Description { get; private set; } = string.Empty;
-        public TaskStatus Status { get; private set; } = TaskStatus.ToDo;
+        public TasksStatus Status { get; private set; } = TasksStatus.ToDo;
         public TaskPriority Priority { get; private set; } = TaskPriority.Medium;
         public DateTime? StartDate { get; private set; }
         public DateTime? DueDate { get; private set; }
@@ -45,7 +45,7 @@ namespace project.Domain.Models
                 Title = title,
                 CreatedBy = createdBy,
                 Priority = priority,
-                Status = TaskStatus.ToDo,
+                Status = TasksStatus.ToDo,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
 
@@ -54,7 +54,7 @@ namespace project.Domain.Models
 
         public void Assign(int userId)
         {
-            if(Status == TaskStatus.Done) throw new DomainException($"Không thể bắt đầu với trạng thái {Status}");
+            if(Status == TasksStatus.Done) throw new DomainException($"Không thể bắt đầu với trạng thái {Status}");
 
             AssignedTo = userId;
             UpdatedAt = DateTime.UtcNow;
@@ -62,27 +62,27 @@ namespace project.Domain.Models
 
         public void Start()
         {
-            if(Status != TaskStatus.ToDo) throw new DomainException("Chỉ có thể bắt đầu công việc ở trạng thái 'To Do'");
+            if(Status != TasksStatus.ToDo) throw new DomainException("Chỉ có thể bắt đầu công việc ở trạng thái 'To Do'");
 
-            Status = TaskStatus.InProgress;
+            Status = TasksStatus.InProgress;
             StartDate = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
         }
 
         public void Complete()
         {
-            if(Status != TaskStatus.InProgress) throw new DomainException("Chỉ có thể hoàn thành công việc ở trạng thái 'In Progress'");
+            if(Status != TasksStatus.InProgress) throw new DomainException("Chỉ có thể hoàn thành công việc ở trạng thái 'In Progress'");
 
-            Status = TaskStatus.Done;
+            Status = TasksStatus.Done;
             CompletedAt = DateTime.UtcNow;
             UpdatedAt = DateTime.UtcNow;
         }
 
         public void Reopen()
         {
-            if (Status != TaskStatus.Done) throw new DomainException("Chỉ có thể mở lại nếu nhiệm vụ ở trạng thái 'Complete' ");
+            if (Status != TasksStatus.Done) throw new DomainException("Chỉ có thể mở lại nếu nhiệm vụ ở trạng thái 'Complete' ");
 
-            Status = TaskStatus.InProgress;
+            Status = TasksStatus.InProgress;
             CompletedAt = null;
             UpdatedAt = DateTime.UtcNow;
         }
@@ -91,7 +91,7 @@ namespace project.Domain.Models
         {
             if(string.IsNullOrEmpty(title)) throw new DomainException("Tên tiêu đề không thể để trống");
 
-            if(Status == TaskStatus.Done) throw new DomainException("Không thể cập nhật chi tiết khi công việc đã hoàn thành");
+            if(Status == TasksStatus.Done) throw new DomainException("Không thể cập nhật chi tiết khi công việc đã hoàn thành");
 
             Title = title;
             Description = description;
@@ -107,7 +107,7 @@ namespace project.Domain.Models
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public bool IsOverdue() => DueDate.HasValue && DueDate.Value < DateTime.UtcNow && Status != TaskStatus.Done;
+        public bool IsOverdue() => DueDate.HasValue && DueDate.Value < DateTime.UtcNow && Status != TasksStatus.Done;
         public bool IsAssigned() => AssignedTo.HasValue;
         public TimeSpan? Duration => CompletedAt.HasValue && StartDate.HasValue ? CompletedAt.Value - StartDate.Value : null;
 

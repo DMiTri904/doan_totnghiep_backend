@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace project.Domain.Models
 {
     public enum GroupMemberRole { Leader, Member }
-    public enum TaskStatus { ToDo, InProgress, Done, Cancelled }
+    public enum TasksStatus { ToDo, InProgress, Done, Cancelled }
     public enum UserRole { Student, Teacher, Admin }
     public enum TaskPriority { Low, Medium, High }
     public enum ActionType { CreateTask, UpdateTask, CompleteTask, Comment, JoinGroup }
@@ -117,7 +117,7 @@ namespace project.Domain.Models
         }
         public int PendingTaskCount()
         {
-            return _worktask.Count(m => m.Status != TaskStatus.Done);
+            return _worktask.Count(m => m.Status != TasksStatus.Done);
         }
 
     }
