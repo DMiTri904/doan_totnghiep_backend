@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace project.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/user")]
     [Authorize]
     public class UserController : ApiController
     {

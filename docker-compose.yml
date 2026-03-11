@@ -9,6 +9,7 @@ services:
     container_name: myapi
     ports:
       - "5000:8080"
+
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=db;Database=DOAN;User=sa;Password=Tri@1234;TrustServerCertificate=True 
@@ -29,6 +30,7 @@ services:
 
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
+    pull_policy: always
     container_name: myapi-db
     ports:
       - "1433:1433"
