@@ -21,10 +21,9 @@ namespace project.Infrastructure.Repositories
             await _context.Set<T>().AddAsync(entity);
         }
 
-        public Task DeleteAsync(T entity)
+        public void DeleteAsync(T entity)
         {
             _context.Set<T>().Remove(entity);
-            return Task.CompletedTask;
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
