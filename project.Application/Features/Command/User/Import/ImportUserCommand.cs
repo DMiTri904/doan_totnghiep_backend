@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace project.Application.Features.Command.Import
+namespace project.Application.Features.Command.User.Import
 {
     public sealed record ImportUserCommand(byte[] fileBytes) : IRequest<ImportResultDto>
     {

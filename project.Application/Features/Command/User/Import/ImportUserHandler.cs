@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace project.Application.Features.Command.Import
+namespace project.Application.Features.Command.User.Import
 {
     public sealed class ImportUserHandler : IRequestHandler<ImportUserCommand, ImportResultDto>
     {
@@ -49,7 +49,7 @@ namespace project.Application.Features.Command.Import
 
                     var passwordHash = _passwordHasher.Hash(row.UserCode);
 
-                    var user = UserApp.Create(row.UserCode, row.Email, passwordHash, row.UserCode, role);
+                    var user = UserApp.Create(row.UserName, row.Email, passwordHash, row.UserCode, role);
                     await _userRepository.AddAsync(user);
                     success++;
                 }

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace project.Application.Features.Command.User
+namespace project.Application.Features.Command.User.ChangePassword
 {
     public sealed class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, Result>
     {

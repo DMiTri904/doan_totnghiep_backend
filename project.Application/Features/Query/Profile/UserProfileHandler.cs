@@ -22,12 +22,11 @@ namespace project.Application.Features.Query.Profile
 
         public async Task<Result<UserProfileModel>> Handle(UserProfileQuery request, CancellationToken cancellationToken)
         {
-            if (request.id < 0) return Result.Failure<UserProfileModel>(new Error("400", "Id không hợp lệ"));
 
             var user = await _userRepository.GetByIdAsync(request.id);
             if (user == null) return Result.Failure<UserProfileModel>(new Error("404", "Không tìm thấy người dùng"));
 
-            var profileModel = new UserProfileModel { Email = user.Email, AvatarUrl = user.AvatarUrl, UserRole = user.UserRole, UserName = user.UserName };
+            var profileModel = new UserProfileModel { Email = user.Email, GithubUserName = user.GithubUserName, UserCode = user.UserCode, AvatarUrl = user.AvatarUrl, IsActive = true, UserRole = user.UserRole, UserName = user.UserName };
             return Result.Success(profileModel);
         }
     }

@@ -4,6 +4,7 @@ using project.Application.Interfaces;
 using project.Application.ModelsDto;
 using project.Application.ModelsDto.DomainModelsDto;
 using project.Domain.Interfaces;
+using project.Domain.Models;
 using project.Domain.Shared;
 using System;
 using System.Collections.Generic;
@@ -18,12 +19,13 @@ namespace project.Application.Features.Command.Auth.Login
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly ITokenGenerator _tokenGenerator;
-
-        public LoginHandler(ITokenGenerator tokenGenerator, IPasswordHasher passwordHasher, IUserRepository userRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public LoginHandler(ITokenGenerator tokenGenerator, IPasswordHasher passwordHasher, IUserRepository userRepository, IUnitOfWork unitOfWork)
         {
             _tokenGenerator = tokenGenerator;
             _passwordHasher = passwordHasher;
             _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<Result<TokenModel>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -47,11 +49,19 @@ namespace project.Application.Features.Command.Auth.Login
             var isValid = _passwordHasher.Verify(request.password, user.PasswordHash);
             if(!isValid)
             {
-                return Result.Failure<TokenModel>(new Error("","Mật khẩu kh ông chính xác"));
+                return Result.Failure<TokenModel>(new Error("","Mật khẩu không chính xác"));
             }
 
-            return await _tokenGenerator.CreateToken(user, populateExp: true);
+            var token = await _tokenGenerator.CreateToken(user, populateExp: true);
+            user.RefreshToken = token.RefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+            _unitOfWork.Repository<UserApp>();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return token;
             
+
 
         }
     }
