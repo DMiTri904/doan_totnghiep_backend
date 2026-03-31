@@ -4,11 +4,12 @@ namespace project.Domain.Models
 {
     public class Label
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Color { get; set; }
-        public ICollection<TaskLabel> TaskLabels => _tasklabels.AsReadOnly();
-        private readonly List<TaskLabel> _tasklabels = new();
+        public int Id { get; private set; }
+        public string Name { get; private set; }
+        public int GroupId { get; private set; }
+        public string Color { get; private set; }
+        public ICollection<TaskLabel> TaskLabels => _taskLabels.AsReadOnly();
+        private readonly List<TaskLabel> _taskLabels = new();
 
         private Label() { }
         public static Label Create(int groupId, string name, string color = "#6B7280")
@@ -48,6 +49,6 @@ namespace project.Domain.Models
             && (color.Length == 4 || color.Length == 7)
             && color[1..].All(c => "0123456789ABCDEFabcdef".Contains(c));
 
-        public bool IsUsed() => _tasklabels.Any();
+        public bool IsUsed() => _taskLabels.Any();
     }
 }

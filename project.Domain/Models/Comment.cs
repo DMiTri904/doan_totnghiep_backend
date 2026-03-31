@@ -49,7 +49,7 @@ namespace project.Domain.Models
             if (string.IsNullOrWhiteSpace(newContent)) throw new DomainException("Nội dung không được để trống");
 
             Content = newContent;
-            IsEdited = true;          // ← hiển thị "(đã chỉnh sửa)" trên UI
+            IsEdited = true;        
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -58,7 +58,7 @@ namespace project.Domain.Models
             if (IsDeleted) throw new DomainException("Bình luận đã bị xóa rồi");
             if (UserId != requestUserId) throw new DomainException("Bạn chỉ có thể xóa bình luận của mình");
 
-            IsDeleted = true;         // ← soft delete, không mất data
+            IsDeleted = true;      
             UpdatedAt = DateTime.UtcNow;
         }
 

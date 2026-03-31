@@ -6,7 +6,8 @@ namespace project.Domain.Models
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public string Content { get; set; }
+        public string Title { get; set; }
+        public string? Body { get; set; }
         public bool IsRead { get; set; } = false;
         public int? GroupId { get; set; }
         public string? RelatedEntityType { get; set; }
@@ -17,16 +18,17 @@ namespace project.Domain.Models
 
         private Notification() { }
 
-        public static Notification Create(int userId, string content,
+        public static Notification Create(int userId, string title, string? body = null,
             int? groupId = null, string? relatedEntityType = null, int? relatedEntityId = null)
         {
-            if (string.IsNullOrWhiteSpace(content))
+            if (string.IsNullOrWhiteSpace(title))
                 throw new DomainException("Nội dung thông báo không được để trống");
 
             return new Notification
             {
                 UserId = userId,
-                Content = content,
+                Title = title,
+                Body = body,
                 GroupId = groupId,
                 RelatedEntityType = relatedEntityType,
                 RelatedEntityId = relatedEntityId,

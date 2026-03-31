@@ -8,7 +8,7 @@
         public Label Label { get; private set; }
 
         private TaskLabel() { }
-        public static TaskLabel Create(int taskId, int labelId, int assignedBy)
+        public static TaskLabel Create(int taskId, int labelId)
         {
             return new TaskLabel
             {

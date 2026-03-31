@@ -9,7 +9,8 @@ namespace project.Domain.Models
         public string PasswordHash { get; private set; } = string.Empty;
         public string? RefreshToken { get; set; } = string.Empty;
         public DateTime? RefreshTokenExpiryTime { get; set; }
-        public bool IsActive { get; private set; } 
+        public bool IsActive { get; private set; }
+        public bool LinkedGithubAccount { get; private set; }
         public string Email { get; private set; } = string.Empty;
         public string? AvatarUrl { get; private set; } = string.Empty;
         public string? UserCode { get; private set; } = string.Empty;
@@ -17,18 +18,22 @@ namespace project.Domain.Models
         public DateTime? ResetPasswordTokenExpiry { get; private set; }
         public UserRole UserRole { get; private set; }
 
-        public ICollection<GroupMem> GroupMembers => _groupmembers.AsReadOnly();
-        public ICollection<WorkTask> AssignedTasks => _assignedtasks.AsReadOnly();
+        // Github username prop
+        public string? GithubUserName { get; private set; }
+        public long? GithubId { get; private set; }
+
+        public ICollection<GroupMem> GroupMembers => _groupMembers.AsReadOnly();
+        public ICollection<WorkTask> AssignedTasks => _assignedTasks.AsReadOnly();
         public ICollection<Comment> Comments => _comments.AsReadOnly();
-        public ICollection<TaskHistory> TaskHistories => _taskhistories.AsReadOnly();
-        public ICollection<ActivityLog> ActivityLogs => _activitylogs.AsReadOnly();
+        public ICollection<TaskHistory> TaskHistories => _taskHistories.AsReadOnly();
+        public ICollection<ActivityLog> ActivityLogs => _activityLogs.AsReadOnly();
         public ICollection<Notification> Notifications => _notifications.AsReadOnly();
 
-        private readonly List<GroupMem> _groupmembers = new();
-        private readonly List<WorkTask> _assignedtasks = new();
+        private readonly List<GroupMem> _groupMembers = new();
+        private readonly List<WorkTask> _assignedTasks = new();
         private readonly List<Comment> _comments = new();
-        private readonly List<TaskHistory> _taskhistories = new();
-        private readonly List<ActivityLog> _activitylogs = new();
+        private readonly List<TaskHistory> _taskHistories = new();
+        private readonly List<ActivityLog> _activityLogs = new();
         private readonly List<Notification> _notifications = new();
 
         private UserApp() { }
@@ -47,7 +52,8 @@ namespace project.Domain.Models
                 UserCode = userCode,
                 UserRole = userRole,
                 IsActive = true,
-                PasswordHash = passwordHash
+                PasswordHash = passwordHash,
+                LinkedGithubAccount = false
             };
         }
         public void UpdateAvatarProfile(string? avatarUrl)
@@ -75,6 +81,15 @@ namespace project.Domain.Models
             return ResetPasswordToken == token
                 && ResetPasswordTokenExpiry.HasValue
                 && ResetPasswordTokenExpiry.Value > DateTime.UtcNow;
+        }
+        public void LinkGitHubAccount(string githubUserName, long githubId)
+        {
+            GithubUserName = githubUserName;
+            GithubId = githubId;
+        }
+        public void VerifyGithubAccount()
+        {
+            LinkedGithubAccount = true;
         }
     }
 }

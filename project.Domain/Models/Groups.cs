@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace project.Domain.Models
 {
     public enum GroupMemberRole { Leader, Member }
-    public enum TasksStatus { ToDo, InProgress, Done, Cancelled }
+    public enum TasksStatus { ToDo, InProgress, Done, Cancelled, Test }
     public enum UserRole { Student, Teacher, Admin }
     public enum TaskPriority { Low, Medium, High }
     public enum ActionType { CreateTask, UpdateTask, CompleteTask, Comment, JoinGroup }
@@ -19,47 +19,50 @@ namespace project.Domain.Models
     {
         public int Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
-        public string? Description { get; private set; } = string.Empty;
         public string SubjectOrProjectName { get; private set; } = string.Empty;
         public int CreatedBy { get; private set; } 
         public DateTime CreatedAt { get; private set; }
+        public int LimitedUser { get; private set; }
         public bool IsActive { get; private set; }
+        public string? GithubRepoUrl { get; set; }
 
         // Navigation properties
         public UserApp Creator { get; private set; }
         public ICollection<GroupMem> Members => _members.AsReadOnly();
-        public ICollection<WorkTask> Tasks => _worktask.AsReadOnly();
+        public ICollection<WorkTask> Tasks => _tasks.AsReadOnly();
         public ICollection<ActivityLog> ActivityLogs => _activityLogs.AsReadOnly();
         public ICollection<Report> Reports => _reports.AsReadOnly();
 
         private readonly List<GroupMem> _members = new();
-        private readonly List<WorkTask> _worktask = new();
+        private readonly List<WorkTask> _tasks = new();
         private readonly List<ActivityLog> _activityLogs = new();
         private readonly List<Report> _reports = new();
 
         private Groups() { }
 
-        public Groups(string name, string? description, string subjectOrProjectName, int createdBy)
+        public static Groups Create(string name, string subjectOrProjectName, int createdBy, int limitedUser)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new DomainException("Tên nhóm không thể trống");
-            if (string.IsNullOrWhiteSpace(description)) throw new DomainException("Mô tả nhóm không thể trống");
             if (string.IsNullOrWhiteSpace(subjectOrProjectName)) throw new DomainException("Tên môn học hoặc dự án không thể trống");
 
-            Name = name;
-            Description = description;
-            SubjectOrProjectName = subjectOrProjectName;
-            CreatedBy = createdBy;
-            CreatedAt = DateTime.UtcNow;
-            IsActive = true;
+            return new Groups
+            {
+                Name = name,
+                SubjectOrProjectName = subjectOrProjectName,
+                CreatedBy = createdBy,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                LimitedUser = limitedUser
+            };
+            
         }
         // Member management
-        public void UpdateDetails(string name, string? description, string subjectOrProjectName)
+        public void UpdateDetails(string name, string subjectOrProjectName)
         {
             if (!IsActive) throw new DomainException("Không thể cập nhật nhóm đã bị vô hiệu hóa");
             if (string.IsNullOrWhiteSpace(name)) throw new DomainException("Tên nhóm không thể để trống");
 
             Name = name;
-            Description = description;
             SubjectOrProjectName = subjectOrProjectName;
         }
         public void AddMember(GroupMem member)
@@ -72,7 +75,17 @@ namespace project.Domain.Models
                 existing.Rejoin(); // reactivate thay vì tạo mới
                 return;
             }
+            var count = MemberCount();
+            if(LimitedUser <= count)
+            {
+                throw new DomainException("Nhóm đã đủ giới hạn thành viên");
+            }
             _members.Add(member);
+
+        }
+        public int MemberCount()
+        {
+            return _members.Count;
         }
         public GroupMem? FindMember(int userId)
         {
@@ -89,7 +102,7 @@ namespace project.Domain.Models
         public void AddTask(WorkTask task)
         {
             if(!IsActive) throw new DomainException("Không thể thêm công việc vào nhóm đã bị vô hiệu hóa");
-            _worktask.Add(task);
+            _tasks.Add(task);
         }
         // Activity log management
         public void ContributeActivityLog(ActivityLog log)
@@ -117,8 +130,20 @@ namespace project.Domain.Models
         }
         public int PendingTaskCount()
         {
-            return _worktask.Count(m => m.Status != TasksStatus.Done);
+            return _tasks.Count(m => m.Status != TasksStatus.Done);
+        }
+        public int TotalTaskCount()
+        {
+            return _tasks.Count;
         }
 
+        public void SetGithubRepoUrl(string repoUrl)
+        {
+            if (string.IsNullOrEmpty(repoUrl))
+            {
+                throw new DomainException("Repo Url không được trống");
+            }
+            GithubRepoUrl = repoUrl;
+        }
     }
 }
