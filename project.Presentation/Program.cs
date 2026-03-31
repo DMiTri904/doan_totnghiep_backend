@@ -1,33 +1,37 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using project.Application.Dependency;
+using project.Application.Interfaces;
+using project.Domain.Models;
 using project.Infrastructure.Database;
 using project.Infrastructure.Depedencies;
+using project.Presentation.Dependencies;
+using project.Presentation.Signalr;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace project.Presentation
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
             builder.Services.AddApplicationService();
             builder.Services.AddInfrastructure(builder.Configuration);
-            builder.Services.AddCors(opt =>
-            {
-                opt.AddPolicy("AllowedReactApp", policy =>
-                {
-                    policy.WithOrigins("https://localhost:5173")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
-                });
-            });
+
+            builder.Services.AddCORS(builder.Configuration);
+            builder.Services.AddNotificationService();
+            builder.Services.AddMemoryCache();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddScoped<DataSeeder>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -35,13 +39,18 @@ namespace project.Presentation
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 db.Database.Migrate();
+
+                var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+                await seeder.SeedAsync();
+
             }
             app.UseSwagger();
             app.UseSwaggerUI();
+            app.UseRouting();
             app.UseCors("AllowedReactApp");
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.MapHub<NotificationHub>("/hubs/notification");
             app.MapControllers();
 
             app.Run();

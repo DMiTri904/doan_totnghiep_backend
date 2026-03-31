@@ -5,14 +5,13 @@ namespace project.Presentation.Models
     public class CreateGroupRequest
     {
         public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
         public string SubjectOrProjectName { get; set; } = string.Empty;
+        public int LimitedUser { get; set; }
     }
     public class UpdateGroupRequest
     {
-        public string? Name { get; set; }
-        public string? Description { get; set; }
-        public string? SubjectOrProjectName { get; set; }
+        public string Name { get; set; }
+        public string SubjectOrProjectName { get; set; }
     }
 
     public class AddMemberRequest
@@ -23,13 +22,11 @@ namespace project.Presentation.Models
 
     public class UpdateMemberRoleRequest
     {
-        public int UserId { get; set; }
         public GroupMemberRole NewRole { get; set; }
     }
-
-    public class RemoveMemberRequest
+    public class RepoUpdateRequest
     {
-        public int UserId { get; set; }
+        public string RepoUrl { get; set; }
     }
 
 }
