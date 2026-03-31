@@ -9,5 +9,7 @@ namespace project.Domain.Interfaces
 {
     public interface ICommentRepository : IGenericRepository<Comment>
     {
+        Task<IReadOnlyList<Comment?>> GetCommentsByTaskIdAsync(int taskId);
+        Task<Comment?> GetCommentByTaskIdAsync(int taskId);
     }
 }

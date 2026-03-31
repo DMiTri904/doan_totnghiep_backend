@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace project.Domain.Interfaces
@@ -14,6 +15,7 @@ namespace project.Domain.Interfaces
         Task<bool> IsEmailExistsAsync(string email);
         Task<string> GetRoleAsync(int id);
         Task AddRangeAsync(IEnumerable<UserApp> users);
-
+        Task<List<UserApp>> SearchAsync(string keyword);
+        Task<List<UserApp>> GetAllAsync(UserRole? userRole = null);
     }
 }
