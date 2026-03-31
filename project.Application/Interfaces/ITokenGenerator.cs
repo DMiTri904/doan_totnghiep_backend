@@ -13,5 +13,6 @@ namespace project.Application.Interfaces
     {
         Task<TokenModel> CreateToken(UserApp user, bool populateExp);
         string GenerateResetPasswordToken();
+        int? GetUserIdFromExpiredToken(string token);
     }
 }
