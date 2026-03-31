@@ -12,12 +12,16 @@ namespace project.Infrastructure.Depedencies
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
             {
-                services
-                    .AddConnectionDatabase(config)
-                    .AddEmailService(config)
-                    .AddRepositories()
-                    .AddExcelImport()
-                    .AddPhotoService(config);
+            services
+                .AddConnectionDatabase(config)
+                .AddEmailService(config)
+                .AddRepositories()
+                .AddExcelImport()
+                .AddPhotoService(config)
+                .AddAuthentication(config)
+                .AddGithubService()
+                .AddMemoryCache()
+                .AddGeminiService();
                 return services;
         }
     }

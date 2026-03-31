@@ -13,6 +13,8 @@ using project.Infrastructure.Repositories;
 using project.Infrastructure.Security;
 using project.Infrastructure.Services.Email;
 using project.Infrastructure.Services.ExcelImport;
+using project.Infrastructure.Services.Gemini;
+using project.Infrastructure.Services.GithubService;
 using project.Infrastructure.Services.Photo;
 using System;
 using System.Collections.Generic;
@@ -42,11 +44,15 @@ namespace project.Infrastructure.Depedencies
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IWorkTaskRepository, WorkTaskRepository>();
-            services.AddScoped<ICommentRepository, CommentRepository>();
+            services.AddScoped<ICommentRepository, CommentRepository>(); 
             services.AddScoped<IGroupRepository, GroupRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<ILabelRepository, LabelRepository>();
+
+
+            // Service
             services.AddScoped<ITokenGenerator, TokenGenerator>();
             services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
             return services;
@@ -79,17 +85,24 @@ namespace project.Infrastructure.Depedencies
             return services;
         }
     }
+    
     public static class AuthenticationInject
     {
         public static IServiceCollection AddAuthentication(this IServiceCollection services, IConfiguration config)
         {
             var jwtSettings = config.GetSection("Jwt");
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
                 .AddJwtBearer(opt =>
                 {
+                    opt.MapInboundClaims = false;
                     opt.TokenValidationParameters = new TokenValidationParameters
                     {
+                        RoleClaimType = "role",
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
@@ -100,7 +113,35 @@ namespace project.Infrastructure.Depedencies
                         IssuerSigningKey = new SymmetricSecurityKey(
                             Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
                     };
+                    opt.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrWhiteSpace(accessToken) && path.StartsWithSegments("/hubs"))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
+                
+            return services;
+        }
+    }
+    public static class ExternalServiceInject
+    {
+        public static IServiceCollection AddGithubService(this IServiceCollection services)
+        {
+            services.AddHttpClient<IGithubOAuthService, GithubOauthService>();
+            services.AddHttpClient<IGithubService, GithubService>();
+            return services;
+        }
+        public static IServiceCollection AddGeminiService(this IServiceCollection services)
+        {
+            services.AddHttpClient<IGeminiService, GeminiService>();
             return services;
         }
     }
