@@ -6,6 +6,7 @@
 # Build folders
 bin/
 obj/
+myapi/
 
 # User-specific files
 *.rsuser
@@ -17,6 +18,9 @@ obj/
 publish/
 appsettings.Development.json
 docker-compose.override.yml
+
+myapi.tar
+sqlserver.tar
 
 
 # User-specific files (MonoDevelop/Xamarin Studio)

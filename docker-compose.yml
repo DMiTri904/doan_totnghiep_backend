@@ -5,8 +5,9 @@ services:
 
   api:
     image: minhtri94/myapi:latest
-    pull_policy: always
+    pull_policy: never
     container_name: myapi
+    restart: always
     ports:
       - "5000:8080"
 
@@ -24,14 +25,22 @@ services:
       - EmailSettings__Username=${SMTP_USERNAME}
       - EmailSettings__Password=${SMTP_PASSWORD}
       - EmailSettings__FromAddress=${SMTP_FromAddress}
+      - Github__GithubClientId=${GITHUB_GITHUBCLIENTID}
+      - Github__GithubClientSecret=${GITHUB_GITHUBCLIENTSECRET}
+      - Github__RedirectUri=${GITHUB_REDIRECTURI}
+      - Github__Key=$"{GITHUB_KEY}"
+      - App__FrontendUrl=${APP_FRONTENDURL}
+      - App__Name=Task Monitoring
+      - Cors__Origins=http://localhost:5173,https://localhost:5173
     depends_on:
       db:
         condition: service_healthy
 
   db:
     image: minhtri94/sqlserver:2022
-    pull_policy: always
+    pull_policy: never
     container_name: myapi-db
+    restart: always
     ports:
       - "1433:1433"
     environment:

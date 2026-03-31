@@ -1,6 +1,8 @@
 **/bin/
 **/obj/
 
+*.tar
+
 .vs/
 *.user
 *.suo
