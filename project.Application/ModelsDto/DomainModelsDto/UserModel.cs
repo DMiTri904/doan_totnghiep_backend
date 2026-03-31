@@ -9,13 +9,11 @@ namespace project.Application.ModelsDto.DomainModelsDto
 {
     public class UserModel
     {
-        public int Id { get; private set; }
-        public string? RefreshToken { get; set; } = string.Empty;
-        public DateTime? RefreshTokenExpiryTime { get; set; }
-        public string UserName { get; private set; } = string.Empty;
-        public string Email { get; private set; } = string.Empty;
-        public string? AvatarUrl { get; private set; } = string.Empty;
-        public string? UserCode { get; private set; } = string.Empty;
-        public UserRole UserRole { get; private set; }
+        public int Id { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? AvatarUrl { get; set; } = string.Empty;
+        public string? UserCode { get; set; } = string.Empty;
+        public UserRole UserRole { get; set; }
     }
 }

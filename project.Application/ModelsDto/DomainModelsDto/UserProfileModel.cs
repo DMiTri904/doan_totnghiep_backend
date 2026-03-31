@@ -15,5 +15,6 @@ namespace project.Application.ModelsDto.DomainModelsDto
         public string? UserCode { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
         public UserRole UserRole { get; set; }
+        public string GithubUserName { get; set; }
     }
 }
