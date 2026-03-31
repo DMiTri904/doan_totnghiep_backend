@@ -12,7 +12,7 @@ namespace project.Infrastructure.Database.ConfigEntity
 
             builder.HasKey(n => n.Id);
 
-            builder.Property(n => n.Content)
+            builder.Property(n => n.Title)
                 .IsRequired()
                 .HasMaxLength(500);
 

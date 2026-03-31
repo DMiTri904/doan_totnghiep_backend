@@ -21,9 +21,6 @@ namespace project.Infrastructure.Database.ConfigEntity
                 .IsRequired()
                 .HasMaxLength(200);
 
-            builder.Property(g => g.Description)
-                .HasMaxLength(1000);
-
             builder.Property(g => g.SubjectOrProjectName)
                 .HasMaxLength(200);
 

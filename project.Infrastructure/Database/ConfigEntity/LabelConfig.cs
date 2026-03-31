@@ -17,6 +17,10 @@ namespace project.Infrastructure.Database.ConfigEntity
             builder.HasKey(l => l.Id);
             builder.Property(l => l.Name).IsRequired().HasMaxLength(50);
             builder.Property(l => l.Color).IsRequired().HasMaxLength(7);
+            builder.HasOne<Groups>()
+            .WithMany()
+            .HasForeignKey(l => l.GroupId)
+            .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
