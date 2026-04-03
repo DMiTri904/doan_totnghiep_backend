@@ -35,10 +35,11 @@ namespace project.Application.Features.Command.WorkTasks.Update
                 var task = await _taskRepository.GetByIdAsync(request.Id);
                 if (task == null) return Result.Failure<TaskModel>(new Error("404", "Không tìm thấy task"));
 
-                var members = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
-                if (members == null) return Result.Failure<TaskModel>(new Error("404", "Không có thành viên nào"));
+                var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
+                if (group == null) return Result.Failure<TaskModel>(new Error("404", "Không có thành viên nào"));
+                if (!group.IsActive) return Result.Failure<TaskModel>(new Error("403", "Nhóm đã bị vô hiệu hóa"));
 
-                var leader = members.FindMember(request.RequestedBy);
+                var leader = group.FindMember(request.RequestedBy);
                 if (leader == null || !leader.IsLeader()) return Result.Failure<TaskModel>(new Error("403", "Chỉ có leader được cập nhật task"));
 
                 task.UpdateDetails(request.Title, request.Description, request.Priority, request.TaskStatus,request.DueDate, request.AssignedTo);

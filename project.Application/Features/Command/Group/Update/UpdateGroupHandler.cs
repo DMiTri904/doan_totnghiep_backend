@@ -20,6 +20,7 @@ namespace project.Application.Features.Command.Group.Update
         {
             var group = await _groupRepository.GetByIdWithMemberAsync(request.GroupId);
             if (group == null) return Result.Failure(new Error("404", "Không tìm thấy nhóm"));
+            if (!group.IsActive) return Result.Failure(new Error("400", "Nhóm đã bị vô hiệu hóa"));
 
             var leader = group.FindMember(request.UserId);
             if (leader == null || !leader.IsLeader()) return Result.Failure(new Error("403", "Chỉ có leader được cập nhật nhóm"));

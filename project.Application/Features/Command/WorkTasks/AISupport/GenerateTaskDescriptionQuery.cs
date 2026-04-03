@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using project.Application.Interfaces;
+using project.Domain.Exceptions;
 using project.Domain.Interfaces;
 using project.Domain.Shared;
 using System;
@@ -24,16 +25,21 @@ namespace project.Application.Features.Command.WorkTasks.AISupport
 
         public async Task<Result<string>> Handle(GenerateTaskDescriptionQuery request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(request.TaskTitle))
-                return Result.Failure<string>(new Error("400", "Tiêu đề task không được để trống"));
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.TaskTitle))
+                    return Result.Failure<string>(new Error("400", "Tiêu đề task không được để trống"));
 
-            var description = await _geminiService.GenerateTaskDescriptionAsync(request.TaskTitle);
-            if (description == null)
-                return Result.Failure<string>(new Error("500", "Không thể tạo mô tả lúc này"));
+                var description = await _geminiService.GenerateTaskDescriptionAsync(request.TaskTitle);
+                if (description == null)
+                    return Result.Failure<string>(new Error("500", "Không thể tạo mô tả lúc này"));
 
-            return Result.Success(description);
-
+                return Result.Success(description);
+            }
+            catch(DomainException ex)
+            {
+                return Result.Failure<string>(new Error("400", ex.Message));
+            }
         }
-
     }
 }

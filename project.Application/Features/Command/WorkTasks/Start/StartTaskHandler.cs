@@ -14,11 +14,13 @@ namespace project.Application.Features.Command.WorkTasks.Start
     public sealed record StartTaskHandler : IRequestHandler<StartTaskCommand, Result>
     {
         private readonly IWorkTaskRepository _taskRepository;
+        private readonly IGroupRepository _groupRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public StartTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork)
+        public StartTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IGroupRepository groupRepository)
         {
             _taskRepository = taskRepository;
             _unitOfWork = unitOfWork;
+            _groupRepository = groupRepository;
         }
 
         public async Task<Result> Handle(StartTaskCommand request, CancellationToken cancellationToken)
@@ -27,6 +29,13 @@ namespace project.Application.Features.Command.WorkTasks.Start
             {
                 var task = await _taskRepository.GetByIdAsync(request.Id);
                 if (task == null) return Result.Failure(new Error("404", "Không tìm thấy task"));
+
+                var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
+                if (group == null) return Result.Failure(new Error("404", "Không tìm thấy nhóm của task này"));
+                if (!group.IsActive) return Result.Failure(new Error("403", "Nhóm đã bị vô hiệu hóa, không thể bắt đầu task"));
+
+                var member = group.FindMember(request.RequestedBy);
+                if (member == null) return Result.Failure(new Error("403", "Chỉ thành viên nhóm mới có thể bắt đầu task"));
 
                 if (task.AssignedTo == null) return Result.Failure(new Error("403", "Chỉ có thể bắt đầu khi đã có người nhận task này"));
 

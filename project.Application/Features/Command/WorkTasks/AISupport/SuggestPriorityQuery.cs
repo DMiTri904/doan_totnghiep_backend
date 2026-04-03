@@ -21,12 +21,19 @@ namespace project.Application.Features.Command.WorkTasks.AISupport
         }
         public async Task<Result<string>> Handle(SuggestPriorityQuery request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(request.TaskTitle))
-                return Result.Failure<string>(new Error("400", "Tiêu đề task không được để trống"));
-            var priority = await _geminiService.SuggestPriorityAsync(request.TaskTitle,request.TaskDescription);
-            if (priority == null)
-                return Result.Failure<string>(new Error("500", "Không thể gợi ý mức độ ưu tiên lúc này"));
-            return Result.Success(priority);
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.TaskTitle))
+                    return Result.Failure<string>(new Error("400", "Tiêu đề task không được để trống"));
+                var priority = await _geminiService.SuggestPriorityAsync(request.TaskTitle, request.TaskDescription);
+                if (priority == null)
+                    return Result.Failure<string>(new Error("500", "Không thể gợi ý mức độ ưu tiên lúc này"));
+                return Result.Success(priority);
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure<string>(new Error("500", $"Đã xảy ra lỗi khi gợi ý mức độ ưu tiên: {ex.Message}"));
+            }
         }
     }
 }

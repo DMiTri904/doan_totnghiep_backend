@@ -33,6 +33,10 @@ namespace project.Application.Features.Command.WorkTasks.Delete
                 var task = await _taskRepository.GetByIdAsync(request.TaskId);
                 if (task == null) return Result.Failure(new Error("404", "Không tìm thấy task cần xóa"));
 
+                var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
+                if (group == null) return Result.Failure(new Error("404", "Không tìm thấy nhóm của task"));
+                if (!group.IsActive) return Result.Failure(new Error("403", "Nhóm đã bị khóa"));
+
                 var members = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
                 if (members == null) return Result.Failure<TaskModel>(new Error("404", "Không có thành viên nào"));
 

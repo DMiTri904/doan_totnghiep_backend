@@ -90,7 +90,7 @@ namespace project.Presentation.Controllers
         {
             var user = User.GetUserId();
             if (user == null) return Unauthorized();
-            var command = new StartTaskCommand(id);
+            var command = new StartTaskCommand(id,user.Value);
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }

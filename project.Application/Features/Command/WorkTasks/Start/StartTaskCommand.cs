@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace project.Application.Features.Command.WorkTasks.Start
 {
-    public sealed record StartTaskCommand(int Id) : IRequest<Result>
+    public sealed record StartTaskCommand(int Id, int RequestedBy) : IRequest<Result>
     {
     }
 }

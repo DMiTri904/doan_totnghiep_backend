@@ -21,16 +21,23 @@ namespace project.Application.Features.Command.WorkTasks.AISupport
         }
         public async Task<Result<string>> Handle(SuggestSubTasksQuery request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(request.Content))
+            try
             {
-                return Result.Failure<string>(new Error("404","Nội dung không được để trống"));
+                if (string.IsNullOrEmpty(request.Content))
+                {
+                    return Result.Failure<string>(new Error("404", "Nội dung không được để trống"));
+                }
+                var result = await _geminiService.SuggestSubTasksAsync(request.Content);
+                if (string.IsNullOrEmpty(result))
+                {
+                    return Result.Failure<string>(new Error("500", "Đã có lỗi xảy ra khi gọi Gemini"));
+                }
+                return Result.Success(result);
             }
-            var result = await _geminiService.SuggestSubTasksAsync(request.Content);
-            if (string.IsNullOrEmpty(result))
+            catch (Exception ex)
             {
-                return Result.Failure<string>(new Error("500", "Đã có lỗi xảy ra khi gọi Gemini"));
+                return Result.Failure<string>(new Error("500", $"Đã có lỗi xảy ra: {ex.Message}"));
             }
-            return Result.Success(result);
         }
     }
 }

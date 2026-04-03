@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using project.Application.Interfaces;
+using project.Domain.Exceptions;
 using project.Domain.Shared;
 using System;
 using System.Collections.Generic;
@@ -21,12 +22,19 @@ namespace project.Application.Features.Command.WorkTasks.AISupport
         }
         public async Task<Result<string>> Handle(EstimateTimeQuery request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(request.Title))
-                return Result.Failure<string>(new Error("400", "Tiêu đề task không được để trống"));
-            var estimate = await _geminiService.EstimateTimeAsync(request.Title);
-            if (estimate == null)
-                return Result.Failure<string>(new Error("500", "Không thể ước lượng thời gian lúc này"));
-            return Result.Success(estimate);
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.Title))
+                    return Result.Failure<string>(new Error("400", "Tiêu đề task không được để trống"));
+                var estimate = await _geminiService.EstimateTimeAsync(request.Title);
+                if (estimate == null)
+                    return Result.Failure<string>(new Error("500", "Không thể ước lượng thời gian lúc này"));
+                return Result.Success(estimate);
+            }
+            catch(DomainException ex)
+            {
+                return Result.Failure<string>(new Error("400", ex.Message));
+            }
         }
     }
 }

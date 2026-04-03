@@ -35,6 +35,7 @@ namespace project.Application.Features.Command.WorkTasks.Complete
 
                 var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
                 if (group == null) return Result.Failure(new Error("404", "Không tìm thấy nhóm"));
+                if (!group.IsActive) return Result.Failure(new Error("403", "Nhóm đã bị khóa"));
 
                 var leader = group.FindMember(request.RequestedBy);
 

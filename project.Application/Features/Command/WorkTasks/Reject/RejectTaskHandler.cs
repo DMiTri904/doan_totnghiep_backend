@@ -27,7 +27,10 @@ namespace project.Application.Features.Command.WorkTasks.Reject
             if (task == null) return Result.Failure(new Error("404", "Không tìm thấy task"));
 
             var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
-            var leader = group?.FindMember(request.RequestedBy);
+            if (group == null) return Result.Failure(new Error("404", "Không tìm thấy nhóm"));
+            if (!group.IsActive) return Result.Failure(new Error("400", "Nhóm đã bị khóa"));
+
+            var leader = group.FindMember(request.RequestedBy);
             if (leader == null || !leader.IsLeader()) return Result.Failure(new Error("403", "Bạn không phải leader để từ chối task này"));
 
             task.Reject();

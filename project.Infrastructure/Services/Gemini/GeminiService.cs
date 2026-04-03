@@ -41,7 +41,9 @@ namespace project.Infrastructure.Services.Gemini
                 }
             };
             var response = await _httpClient.PostAsJsonAsync(_url, body);
-            if (!response.IsSuccessStatusCode) return null;
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                return "Quá nhiều yêu cầu, vui lòng thử lại sau.";
+            if (!response.IsSuccessStatusCode) return response.StatusCode.ToString();
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
             return json.GetProperty("candidates")[0]

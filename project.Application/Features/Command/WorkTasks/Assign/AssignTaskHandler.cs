@@ -38,8 +38,10 @@ namespace project.Application.Features.Command.WorkTasks.Assign
                 if (task == null) return Result.Failure(new Error("404", "Không tìm thấy task"));   
 
                 var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
+                if (group == null) return Result.Failure(new Error("404", "Không tìm thấy nhóm"));
+                if (!group.IsActive) return Result.Failure(new Error("403", "Nhóm đã bị khóa"));
 
-                var leader = group?.FindMember(request.RequestedBy);
+                var leader = group.FindMember(request.RequestedBy);
                 if (leader == null || !leader.IsLeader()) return Result.Failure(new Error("403", "Chỉ có leader được giao task"));
 
                 var member = group?.FindMember(request.UserId);
