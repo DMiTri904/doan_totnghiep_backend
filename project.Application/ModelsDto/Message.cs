@@ -19,5 +19,11 @@ namespace project.Application.ModelsDto
             Subject = subject;
             Body = body;
         }
+        public Message(string to, string? subject, string? body)
+        {
+            To = new List<string> { to };
+            Subject = subject;
+            Body = body;
+        }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using Azure;
+using Azure.Core;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using project.Application.Interfaces;
 using project.Application.ModelsDto;
 using project.Domain.Exceptions;
@@ -27,19 +29,32 @@ namespace project.Infrastructure.Services.GithubService
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _configuration["Github:Key"]);
         }
 
-        public async Task<int> GetTotalCommitAsync(string userName, string repo, string owner)
+        public async Task<int> GetTotalCommitAsync(string owner, string repo, string userName)
         {
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{owner}/{repo}/commits?author={userName}&per_page=100");
             if (!response.IsSuccessStatusCode) return 0;
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement[]>() ?? [];
-            var commit = json.Length;
+            var commit = json.Count(c =>
+            {
+                var message = c.GetProperty("commit")
+                               .GetProperty("message")
+                               .GetString() ?? "";
+
+                var parents = c.GetProperty("parents");
+
+                var isMergeCommit = parents.GetArrayLength() > 1
+                                    || message.StartsWith("Merge pull request", StringComparison.OrdinalIgnoreCase);
+
+                return !isMergeCommit;
+            });
             return commit;
         }
 
         public async Task<string?> GetRepoOwnerAsync(string owner, string repo)
         {
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{owner}/{repo}");
+            var rawJson = await response.Content.ReadAsStringAsync();
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound) throw new DomainException("Không tìm thấy repo");
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
             var isPrivate = json.GetProperty("private").GetBoolean();
@@ -96,6 +111,58 @@ namespace project.Infrastructure.Services.GithubService
             var branchName = $"feature/task-{taskId}";
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{owner}/{repo}/branches/{branchName}");
             return response.IsSuccessStatusCode;
+        }
+
+        public async Task<BranchModel?> CreateBranchAsync(string owner, string repo, int taskId, string accessToken, string baseBranch = "main")
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.github.com/repos/{owner}/{repo}/git/refs/heads/{baseBranch}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var refResponse = await _httpClient.SendAsync(request);
+            if (!refResponse.IsSuccessStatusCode) return null;
+
+            var raw = await refResponse.Content.ReadAsStringAsync();
+            var json = JsonSerializer.Deserialize<JsonElement>(raw);
+
+            string? sha = null;
+            if (json.ValueKind == JsonValueKind.Array)
+                sha = json[0].GetProperty("object").GetProperty("sha").GetString();
+            else
+                sha = json.GetProperty("object").GetProperty("sha").GetString();
+
+            if (sha == null) return null;
+
+            var branchName = $"feature/task-{taskId}";
+            var body = new
+            {
+                @ref = $"refs/heads/{branchName}",
+                sha = sha
+            };
+
+            var createRequest = new HttpRequestMessage(HttpMethod.Post, $"https://api.github.com/repos/{owner}/{repo}/git/refs");
+            createRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            createRequest.Content = JsonContent.Create(body);
+
+            var createResponse = await _httpClient.SendAsync(createRequest);
+            if (!createResponse.IsSuccessStatusCode) return null;
+
+            return await createResponse.Content.ReadFromJsonAsync<BranchModel>();
+
+        }
+
+        public async Task<bool> DeleteBranchAsync(string owner, string repo, int taskId, string accessToken)
+        {
+            var branchName = $"feature/task-{taskId}";
+
+            var protectedBranches = new[] { "main", "master", "develop" };
+            if (protectedBranches.Contains(branchName)) return false;
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"https://api.github.com/repos/{owner}/{repo}/git/refs/heads/{branchName}");
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            
+            var response = await _httpClient.SendAsync(requestMessage);
+
+            return response.StatusCode == System.Net.HttpStatusCode.NoContent;
         }
     }
 }

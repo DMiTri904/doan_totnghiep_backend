@@ -38,6 +38,11 @@ namespace project.Infrastructure.Repositories
             return await _context.User.Where(u => userRole == null || u.UserRole == userRole).ToListAsync();
         }
 
+        public async Task<UserApp?> GetByGithubIdAsync(long Id)
+        {
+            return await _context.User.Where(u => u.GithubId == Id).FirstOrDefaultAsync();
+        }
+
         public async Task<string> GetRoleAsync(int id)
         {
             var role = await _context.User

@@ -19,7 +19,7 @@ namespace project.Domain.Helpers
                 var parts = uri.AbsolutePath.Trim('/').Split('/');
                 if (parts.Length < 2) return false;
                 owner = parts[0];
-                repo = parts[1];
+                repo = parts[1].Replace(".git", ""); ;
                 return true;
             }
             catch

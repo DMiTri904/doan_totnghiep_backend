@@ -10,5 +10,8 @@ namespace project.Domain.Interfaces
     {
         Task SaveChangesAsync(CancellationToken cancellationToken);
         IGenericRepository<T> Repository<T>() where T : class;
+        Task CommitAsync(CancellationToken cancellationToken);
+        Task BeginTransactionAsync(CancellationToken cancellationToken);
+        Task RollbackAsync(CancellationToken cancellationToken);
     }
 }

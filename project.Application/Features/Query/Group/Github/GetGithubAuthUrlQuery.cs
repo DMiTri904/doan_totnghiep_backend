@@ -42,7 +42,7 @@ namespace project.Application.Features.Query.Group.Github
             var url = $"https://github.com/login/oauth/authorize" +
                       $"?client_id={clientId}" + 
                       $"&redirect_uri={Uri.EscapeDataString(redirectUri!)}" +
-                      $"&scope=user:email" +
+                      $"&scope=user:email,repo" +
                       $"&state={Uri.EscapeDataString(state)}";
 
             return Task.FromResult(url);

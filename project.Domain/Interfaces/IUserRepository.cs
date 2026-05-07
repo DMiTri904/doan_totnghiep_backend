@@ -17,5 +17,6 @@ namespace project.Domain.Interfaces
         Task AddRangeAsync(IEnumerable<UserApp> users);
         Task<List<UserApp>> SearchAsync(string keyword);
         Task<List<UserApp>> GetAllAsync(UserRole? userRole = null);
+        Task<UserApp?> GetByGithubIdAsync(long Id);
     }
 }

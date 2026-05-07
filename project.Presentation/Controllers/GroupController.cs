@@ -1,22 +1,26 @@
-﻿    using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using project.Application.Features.Command.Group.AddMem;
 using project.Application.Features.Command.Group.Create;
 using project.Application.Features.Command.Group.Deactivate;
 using project.Application.Features.Command.Group.Delete;
+using project.Application.Features.Command.Group.Join;
 using project.Application.Features.Command.Group.Promote;
 using project.Application.Features.Command.Group.Reactive;
 using project.Application.Features.Command.Group.RemoveMem;
 using project.Application.Features.Command.Group.Update;
 using project.Application.Features.Command.Group.UpdateGroupRepo;
+using project.Application.Features.Command.Reports.ExportGroupPdf;
 using project.Application.Features.Query.Group;
 using project.Application.Features.Query.Group.GetAllGroupByUser;
+using project.Application.Features.Query.Group.GetById;
 using project.Application.Features.Query.Group.GetDetailGroup;
 using project.Application.Features.Query.Group.GetMemberGroup;
 using project.Application.Features.Query.Group.GetTotalContributionQuery;
 using project.Application.Features.Query.Group.GetUrlRepo;
 using project.Application.Features.Query.Group.Github;
+using project.Application.Features.Query.Report.DownloadReport;
 using project.Presentation.Extension;
 using project.Presentation.Models;
 
@@ -30,17 +34,6 @@ namespace project.Presentation.Controllers
         {
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
-        {
-            var userId = User.GetUserId();
-            if (userId == null) return Unauthorized();
-
-            var command = new CreateGroupCommand(request.Name, request.SubjectOrProjectName, userId.Value, request.LimitedUser);
-
-            var result = await _sender.Send(command);
-            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
-        }
         [HttpPost("{groupId}/member")]
         public async Task<IActionResult> AddMember(int groupId, [FromBody] AddMemberRequest request)
         {
@@ -90,7 +83,7 @@ namespace project.Presentation.Controllers
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
 
-        [HttpGet]
+        [HttpGet("my-groups")]
         public async Task<IActionResult> GetGroups()
         {
             var user = User.GetUserId();
@@ -146,7 +139,7 @@ namespace project.Presentation.Controllers
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
 
         }
-        [HttpGet("{groupId}")]
+        [HttpGet("{groupId}/repo")]
         public async Task<IActionResult> GetRepoUrl(int groupId)
         {
             var user = User.GetUserId();
@@ -161,6 +154,45 @@ namespace project.Presentation.Controllers
             var user = User.GetUserId();
             if (user == null) return Unauthorized();
             var query = new GetTotalContributionQuery(user.Value, groupId);
+            var result = await _sender.Send(query);
+            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        }
+        [HttpPost("{groupId}/report-generated")]
+        public async Task<IActionResult> ReportGroup(int groupId)
+        {
+            var user = User.GetUserId();
+            if (user == null) return Unauthorized();
+            var command = new ExportGroupReportCommand(user.Value,groupId);
+            var result = await _sender.Send(command);
+            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        }
+        [HttpGet("report/{reportId}/download")]
+        public async Task<IActionResult> DownloadReport(int reportId)
+        {
+            var user = User.GetUserId();
+            if (user == null) return Unauthorized();
+            var query = new DownloadReportQuery(reportId, user.Value);
+            var result = await _sender.Send(query);
+            if (!result.IsSuccess) return BadRequest(result.Error);
+            var fileName = $"Baocao_{reportId}_{DateTime.UtcNow:yyyyMMdd}.pdf";
+            return File(result.Value, "application/pdf", fileName);
+        }
+
+        [HttpPost("{groupId}/join-request")]
+        public async Task<IActionResult> RequestJoinGroup(int groupId)
+        {
+            var user = User.GetUserId();
+            if (user == null) return Unauthorized();
+            var command = new RequestJoinGroupCommand(user.Value, groupId);
+            var result = await _sender.Send(command);
+            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        }
+        [HttpGet("{groupId}")]
+        public async Task<IActionResult> GetGroupById(int groupId)
+        {
+            var user = User.GetUserId();
+            if (user == null) return Unauthorized();
+            var query = new GetGroupByIdQuery(user.Value,groupId);
             var result = await _sender.Send(query);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }

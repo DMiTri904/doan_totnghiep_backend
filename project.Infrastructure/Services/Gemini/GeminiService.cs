@@ -53,18 +53,16 @@ namespace project.Infrastructure.Services.Gemini
                        .GetString();
         }
         public Task<string?> GenerateTaskDescriptionAsync(string taskTitle) =>
-            CallGeminiAsync($"Viết mô tả chi tiết cho task '{taskTitle}', ngắn gọn 3-5 câu, bằng tiếng Việt.");
+            CallGeminiAsync($"Viết mô tả chi tiết cho task '{taskTitle}', ngắn gọn 3-5 câu, không viết lại câu prompt, bằng tiếng Việt.");
 
         public Task<string?> SuggestSubTasksAsync(string taskTitle) =>
-            CallGeminiAsync($"Gợi ý 3-5 công việc con cho task '{taskTitle}' trong dự án nhóm sinh viên, bằng tiếng Việt.");
+            CallGeminiAsync($"Gợi ý 3-5 công việc con cho task '{taskTitle}' trong dự án nhóm sinh viên, không viết lại câu prompt, bằng tiếng Việt.");
 
         public Task<string?> EstimateTimeAsync(string taskTitle) =>
-            CallGeminiAsync($"Ước tính thời gian hoàn thành task '{taskTitle}' trong dự án nhóm sinh viên, bằng tiếng Việt.");
+            CallGeminiAsync($"Ước tính thời gian hoàn thành task '{taskTitle}' trong dự án nhóm sinh viên, không viết lại câu prompt, bằng tiếng Việt.");
 
         public Task<string?> SuggestPriorityAsync(string taskTitle, string taskDescription) =>
-            CallGeminiAsync($"Gợi ý mức độ ưu tiên (Thấp/Trung bình/Cao/Khẩn cấp) cho task '{taskTitle}': '{taskDescription}', bằng tiếng Việt.");
+            CallGeminiAsync($"Gợi ý mức độ ưu tiên (Thấp/Trung bình/Cao/Khẩn cấp) cho task '{taskTitle}': '{taskDescription}', không viết lại câu prompt, bằng tiếng Việt.");
 
-        public Task<string?> ReviewGroupProgressAsync(int total, int completed, int inProgress, int todo, DateTime deadline) =>
-            CallGeminiAsync($"Nhận xét tiến độ nhóm: Tổng {total}, Hoàn thành {completed}, Đang làm {inProgress}, Chưa bắt đầu {todo}, Deadline {deadline:dd/MM/yyyy}. Bằng tiếng Việt.");
-    }
+      }
 }

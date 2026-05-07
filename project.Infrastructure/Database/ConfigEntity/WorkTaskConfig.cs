@@ -30,6 +30,7 @@ namespace project.Infrastructure.Database.ConfigEntity
                 .HasMaxLength(20)
                 .IsRequired();
 
+
             builder.Property(t => t.Priority)
                 .HasConversion<string>()
                 .HasMaxLength(20)
@@ -63,17 +64,6 @@ namespace project.Infrastructure.Database.ConfigEntity
                 .HasForeignKey(c => c.TaskId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // TaskHistories
-            builder.HasMany(t => t.TaskHistories)
-                .WithOne(th => th.Task)
-                .HasForeignKey(th => th.TaskId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // TaskLabels
-            builder.HasMany(t => t.TaskLabels)
-                .WithOne(tl => tl.Task)
-                .HasForeignKey(tl => tl.TaskId)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

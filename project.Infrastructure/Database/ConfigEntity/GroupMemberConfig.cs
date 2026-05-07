@@ -31,11 +31,6 @@ namespace project.Infrastructure.Database.ConfigEntity
             builder.HasIndex(gm => new { gm.GroupId, gm.UserId })
                 .IsUnique();
 
-            builder.HasOne(gm => gm.Group)
-                .WithMany(g => g.Members)
-                .HasForeignKey(gm => gm.GroupId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             builder.HasOne(gm => gm.User)
                 .WithMany(u => u.GroupMembers)
                 .HasForeignKey(gm => gm.UserId)

@@ -13,15 +13,18 @@ using project.Infrastructure.Repositories;
 using project.Infrastructure.Security;
 using project.Infrastructure.Services.Email;
 using project.Infrastructure.Services.ExcelImport;
+using project.Infrastructure.Services.FileStorage;
 using project.Infrastructure.Services.Gemini;
 using project.Infrastructure.Services.GithubService;
 using project.Infrastructure.Services.Photo;
+using project.Infrastructure.Services.ReportPdf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace project.Infrastructure.Depedencies
 {
@@ -47,9 +50,10 @@ namespace project.Infrastructure.Depedencies
             services.AddScoped<ICommentRepository, CommentRepository>(); 
             services.AddScoped<IGroupRepository, GroupRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
-            services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<ILabelRepository, LabelRepository>();
+            services.AddScoped<IReportRepository,ReportRepository>();
+            services.AddScoped<IClassroomRepository,ClassroomRepository>();
+            services.AddScoped<ITaskHistoryRepository, TaskHistoryRepository>();
 
 
             // Service
@@ -59,33 +63,6 @@ namespace project.Infrastructure.Depedencies
         }
 
     }
-    public static class EmailInject
-    {
-        public static IServiceCollection AddEmailService(this IServiceCollection services, IConfiguration config)
-        {
-            services.Configure<EmailConfiguration>(config.GetSection("EmailSettings"));
-            services.AddScoped<IEmailService, EmailService>();
-            return services;
-        }
-    }
-    public static class PhotoServiceInject
-    {
-        public static IServiceCollection AddPhotoService(this IServiceCollection services, IConfiguration config)
-        {
-            services.Configure<CloudinarySettings>(config.GetSection("Cloudinary"));
-            services.AddScoped<IPhotoService, PhotoService>();
-            return services;
-        }
-    }
-    public static class ExcelImport
-    {
-        public static IServiceCollection AddExcelImport(this IServiceCollection services)
-        {
-            services.AddScoped<IExcelImportService, ExcelImportService>();
-            return services;
-        }
-    }
-    
     public static class AuthenticationInject
     {
         public static IServiceCollection AddAuthentication(this IServiceCollection services, IConfiguration config)
@@ -133,15 +110,32 @@ namespace project.Infrastructure.Depedencies
     }
     public static class ExternalServiceInject
     {
-        public static IServiceCollection AddGithubService(this IServiceCollection services)
+        public static IServiceCollection AddExternalService(this IServiceCollection services, IConfiguration config)
         {
+            // GIHUB
             services.AddHttpClient<IGithubOAuthService, GithubOauthService>();
             services.AddHttpClient<IGithubService, GithubService>();
-            return services;
-        }
-        public static IServiceCollection AddGeminiService(this IServiceCollection services)
-        {
+
+            // GEMINI
             services.AddHttpClient<IGeminiService, GeminiService>();
+
+            // PHOTO
+            services.Configure<CloudinarySettings>(config.GetSection("Cloudinary"));
+            services.AddScoped<IPhotoService, PhotoService>();
+
+            // IMPORT EXCEL
+            services.AddScoped<IExcelImportService, ExcelImportService>();
+
+            // EMAIL 
+            services.Configure<EmailConfiguration>(config.GetSection("EmailSettings"));
+            services.AddScoped<IEmailService, EmailService>();
+
+            // EXPORT PDF
+            services.AddScoped<IReportService, ReportService>();
+
+            // FiLE STORAGE
+            services.Configure<FileStorageOptions>(config.GetSection(FileStorageOptions.SectionName));
+            services.AddScoped<IFileStorageService, FileStorageService>();
             return services;
         }
     }

@@ -16,7 +16,6 @@ namespace project.Application.Interfaces
 
         public Task<string?> SuggestPriorityAsync(string taskTitle, string taskDescription);
 
-        public Task<string?> ReviewGroupProgressAsync(int total, int completed, int inProgress, int todo, DateTime deadline);
 
     }
 }

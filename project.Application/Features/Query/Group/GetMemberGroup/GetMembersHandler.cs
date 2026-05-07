@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
+using project.Application.Features.Query.Group.Github;
 using project.Application.ModelsDto;
 using project.Domain.Interfaces;
 using project.Domain.Models;
@@ -17,10 +18,12 @@ namespace project.Application.Features.Query.Group.GetMemberGroup
     {
         private readonly IMapper _mapper;
         private readonly IGroupRepository _groupRepository;
-        public GetMembersHandler(IMapper mapper, IGroupRepository groupRepository)
+        private readonly IClassroomRepository _classRoomRepository;
+        public GetMembersHandler(IMapper mapper, IGroupRepository groupRepository, IClassroomRepository classRoomRepository)
         {
             _mapper = mapper;
             _groupRepository = groupRepository;
+            _classRoomRepository = classRoomRepository;
         }
 
         public async Task<Result<IReadOnlyList<GroupMemModel>>> Handle(GetMembersQuery request, CancellationToken cancellationToken)
@@ -28,10 +31,17 @@ namespace project.Application.Features.Query.Group.GetMemberGroup
 
             var group = await _groupRepository.GetByIdWithMemberAsync(request.GroupId);
             if (group == null) return Result.Failure<IReadOnlyList<GroupMemModel>>(new Error("404", "Không tìm thấy nhóm"));
+            if (!group.IsActive) return Result.Failure<IReadOnlyList<GroupMemModel>>(new Error("403", "Nhóm đã bị vô hiệu hóa"));
 
-            var member = group.FindMember(request.RequestedBy);
-            if (member == null) return Result.Failure<IReadOnlyList<GroupMemModel>>(new Error("403", "Bạn không phải là thành viên của nhóm"));
+            var classRoom = await _classRoomRepository.GetByIdAsync(group.ClassRoomId);
+            if (classRoom == null) return Result.Failure<IReadOnlyList<GroupMemModel>>(new Error("404", "Không tìm thấy lớp học"));
 
+            if (classRoom.TeacherId != request.RequestedBy)
+            {
+                var member = group.FindMember(request.RequestedBy);
+                if (member == null) return Result.Failure<IReadOnlyList<GroupMemModel>>(new Error("403", "Bạn không phải là thành viên của nhóm"));
+                if (!member.IsActive) return Result.Failure<IReadOnlyList<GroupMemModel>>(new Error("403", "Bạn đã rời nhóm"));
+            }
             var members = group.Members.ToList();
             var dto = _mapper.Map<IReadOnlyList<GroupMemModel>>(members);
 

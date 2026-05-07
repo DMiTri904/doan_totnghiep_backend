@@ -43,16 +43,17 @@ namespace project.Application.Features.Command.Github
             var accessToken = await _github.GetAccessTokenAsync(request.Code);
             if (accessToken == null) return new LinkGithubResult(false, "Token_error");
 
+            var githubUser = await _github.GetUserAsync(accessToken);
+
             var emails = await _github.GetEmailAsync(accessToken);
 
             var matched = emails.Any(e => e.Email.Equals(inputEmail, StringComparison.OrdinalIgnoreCase) && e.Verified);
 
             if (!matched) return new LinkGithubResult(false, "Email không giống nhau");
 
-            var githubUser = await _github.GetUserAsync(accessToken);
-
-            var user = await _userRepository.GetByIdAsync(userId);
-            user!.LinkGitHubAccount(githubUser.Login, githubUser.Id);
+            var user = await _userRepository.FindByEmailAsync(inputEmail);
+            if (user == null) return new LinkGithubResult(false, "Không tìm thấy người dùng");
+            user!.LinkGitHubAccount(githubUser.Login, githubUser.Id,accessToken);
             user.VerifyGithubAccount();
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

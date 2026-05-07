@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using project.Application.ModelsDto;
 using project.Domain.Exceptions;
 using project.Domain.Interfaces;
 using project.Domain.Models;
@@ -12,12 +13,14 @@ namespace project.Application.Features.Command.Comments.Delete
         private readonly ICommentRepository _commentRepository;
         private readonly IGroupRepository _groupRepository;
         private readonly IWorkTaskRepository _taskRepository;
-        public DeleteCommentHandler(ICommentRepository commentRepository, IUnitOfWork unitOfWork, IGroupRepository groupRepository, IWorkTaskRepository taskRepository)
+        private readonly IClassroomRepository _classRoomRepository;
+        public DeleteCommentHandler(ICommentRepository commentRepository, IUnitOfWork unitOfWork, IGroupRepository groupRepository, IWorkTaskRepository taskRepository, IClassroomRepository classRoomRepository)
         {
             _commentRepository = commentRepository;
             _unitOfWork = unitOfWork;
             _groupRepository = groupRepository;
             _taskRepository = taskRepository;
+            _classRoomRepository = classRoomRepository;
         }
 
         public async Task<Result> Handle(DeleteCommentCommand request, CancellationToken cancellationToken)
@@ -32,6 +35,11 @@ namespace project.Application.Features.Command.Comments.Delete
 
                 var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
                 if (group == null) return Result.Failure(new Error("404", "Không tìm thấy nhóm"));
+
+                var classRoom = await _classRoomRepository.GetByIdAsync(group.ClassRoomId);
+                if (classRoom == null) return Result.Failure<CommentModel>(new Error("404", "Không tìm thấy lớp học"));
+                if (!classRoom.IsActive) return Result.Failure<CommentModel>(new Error("403", "Không thể thêm bình luận vào lớp học bị vô hiệu hóa"));
+
 
                 var member = group.FindMember(request.RequestedBy);
                 if (member == null) return Result.Failure(new Error("403", "Bạn không phải thành viên của nhóm"));

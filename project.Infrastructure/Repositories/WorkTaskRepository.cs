@@ -16,7 +16,12 @@ namespace project.Infrastructure.Repositories
         {
         }
 
-        public async Task<List<WorkTask>> GetTasksByGroupIdAsync(int groupId, int? labelId = null, TasksStatus? taskStatus = null, TaskPriority? taskPriority = null)
+        public async Task<List<WorkTask>> GetOverdueTasksByGroupIdAsync(int groupId)
+        {
+            return await _context.WorkTask.Where(x => x.GroupId == groupId && x.DueDate < DateTime.UtcNow && x.Status != TasksStatus.Done).ToListAsync();
+        }
+
+        public async Task<List<WorkTask>> GetTasksByGroupIdAsync(int groupId, TasksStatus? taskStatus = null, TaskPriority? taskPriority = null)
         {
             return await _context.WorkTask
                 .Where(x => x.GroupId == groupId)
@@ -26,14 +31,8 @@ namespace project.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<WorkTask?> GetByIdWithLabelsAsync(int taskId)
-        {
-            return await _context.WorkTask
-                .Include(t => t.TaskLabels)
-                .FirstOrDefaultAsync(t => t.Id == taskId);
-        }
 
-        public async Task<List<WorkTask>> GetTasksByUserIdAsync(int groupId, int userId, int? labelId = null, TasksStatus? taskStatus = null, TaskPriority? taskPriority = null)
+        public async Task<List<WorkTask>> GetTasksByUserIdAsync(int groupId, int userId, TasksStatus? taskStatus = null, TaskPriority? taskPriority = null)
         {
             return await _context.WorkTask
                 .Where(t => t.GroupId == groupId)
@@ -43,5 +42,38 @@ namespace project.Infrastructure.Repositories
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }
+
+
+
+        //public async Task<List<WorkTask>> GetTasksWithGroupAndHistoryAndMemberByGroupIdAsync(int groupId)
+        //{
+        //    return await _context.WorkTask
+        //        .Where(t => t.GroupId == groupId)
+        //        .Include(t => t.Groups)
+        //        .ThenInclude(g => g.Members)
+        //        .ThenInclude(m => m.User)
+        //        .Include(t => t.History)
+        //        .OrderByDescending(t => t.CreatedAt)
+        //        .ToListAsync();
+        //}
+
+        public async Task<WorkTask?> GetWithCreatorAndAssigneeByIdAsync(int id)
+        {
+            return await _context.WorkTask
+                .Include(t => t.Creator)
+                .Include(t => t.Assignee)
+                .FirstOrDefaultAsync(t => t.Id == id);
+        }
+
+        //public async Task<WorkTask?> GetWithGroupAndHistorAndMemberyByIdAsync(int id)
+        //{
+        //    return await _context.WorkTask
+        //        .Include(t => t.Groups)
+        //        .ThenInclude(g => g.Members)
+        //        .ThenInclude(m => m.User)
+        //        .Include(t => t.History)
+        //        .OrderByDescending(t => t.CreatedAt)
+        //        .FirstOrDefaultAsync(t => t.Id == id);
+        //}
     }
 }

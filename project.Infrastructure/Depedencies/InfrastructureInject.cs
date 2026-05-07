@@ -14,15 +14,11 @@ namespace project.Infrastructure.Depedencies
             {
             services
                 .AddConnectionDatabase(config)
-                .AddEmailService(config)
                 .AddRepositories()
-                .AddExcelImport()
-                .AddPhotoService(config)
                 .AddAuthentication(config)
-                .AddGithubService()
                 .AddMemoryCache()
-                .AddGeminiService();
-                return services;
+                .AddExternalService(config);
+            return services;
         }
     }
 }

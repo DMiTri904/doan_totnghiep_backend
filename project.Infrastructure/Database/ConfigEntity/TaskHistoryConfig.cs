@@ -13,33 +13,35 @@ namespace project.Infrastructure.Database.ConfigEntity
     {
         public void Configure(EntityTypeBuilder<TaskHistory> builder)
         {
-            builder.ToTable("TaskHistories");
+            builder.ToTable("TaskHistory");
 
-            builder.HasKey(th => th.Id);
+            builder.HasKey(x => x.Id);
 
-            builder.Property(th => th.OldStatus)
+            builder.Property(x => x.OldStatus)
                 .HasConversion<string>()
-                .HasMaxLength(20)
+                .HasMaxLength(50);
+
+            builder.Property(x => x.NewStatus)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            builder.Property(x => x.ChangedAt)
                 .IsRequired();
 
-            builder.Property(th => th.NewStatus)
-                .HasConversion<string>()
-                .HasMaxLength(20)
+            builder.Property(x => x.ChangedBy)
                 .IsRequired();
 
-            builder.Property(th => th.Note)
-                .HasMaxLength(500);
+            builder.Property(x => x.TaskId)
+                .IsRequired();
 
-            builder.Property(th => th.ChangedAt).IsRequired();
-
-            builder.HasOne(th => th.Task)
-                .WithMany(t => t.TaskHistories)
-                .HasForeignKey(th => th.TaskId)
+            builder.HasOne(t => t.Task)
+                .WithMany(h => h.History)
+                .HasForeignKey(t => t.TaskId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(th => th.User)
-                .WithMany(u => u.TaskHistories)
-                .HasForeignKey(th => th.ChangedBy)
+            builder.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.ChangedBy)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

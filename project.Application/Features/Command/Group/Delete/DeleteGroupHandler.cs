@@ -13,20 +13,27 @@ namespace project.Application.Features.Command.Group.Delete
     public sealed class DeleteGroupHandler : IRequestHandler<DeleteGroupCommand, Result>
     {
         private readonly IGroupRepository _groupRepository;
+        private readonly IClassroomRepository _classRoomRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public DeleteGroupHandler(IGroupRepository groupRepository, IUnitOfWork unitOfWork)
+        public DeleteGroupHandler(IGroupRepository groupRepository, IUnitOfWork unitOfWork, IClassroomRepository classRoomRepository)
         {
             _groupRepository = groupRepository;
             _unitOfWork = unitOfWork;
+            _classRoomRepository = classRoomRepository;
         }
 
         public async Task<Result> Handle(DeleteGroupCommand request, CancellationToken cancellationToken)
         {
             var group = await _groupRepository.GetByIdWithMemberAsync(request.GroupId);
             if (group == null) return Result.Failure(new Error("404", "Không tìm thấy nhóm"));
-            
-            var leader = group.FindMember(request.RequetedBy);
-            if (leader == null || !leader.IsLeader()) return Result.Failure(new Error("403", "Chỉ có leader mới được xóa nhóm"));
+
+            var member = group.FindMember(request.RequetedBy);
+            if (member == null) return Result.Failure(new Error("403", "Bạn không phải là thành viên của nhóm này"));
+            if (!member.IsLeader()) return Result.Failure(new Error("403", "Bạn không phải là trưởng nhóm"));
+
+            var classroom = await _classRoomRepository.GetByIdAsync(group.ClassRoomId);
+            if (classroom == null) return Result.Failure(new Error("404", "Không tìm thấy lớp học"));
+            if (!classroom.IsActive) return Result.Failure(new Error("403", "Không thể thao tác trên lớp học bị vô hiệu hóa"));
 
             _unitOfWork.Repository<Groups>().DeleteAsync(group);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

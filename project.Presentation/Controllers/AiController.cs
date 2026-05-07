@@ -15,32 +15,15 @@ namespace project.Presentation.Controllers
         {
         }
 
-        [HttpPost("describe")]
-        public async Task<IActionResult> Describe([FromBody] AiRequest request)
+        [HttpPost("support")]
+        public async Task<IActionResult> Support([FromBody] AISuportCommand command)
         {
-            var result = await _sender.Send(new GenerateTaskDescriptionQuery(request.Title));
-            return result.IsSuccess ? Ok(new { description = result.Value }) : BadRequest(result.Error);
-        }
+            var result = await _sender.Send(command);
 
-        [HttpPost("subtasks")]
-        public async Task<IActionResult> SubTasks([FromBody] AiRequest request)
-        {
-            var result = await _sender.Send(new SuggestSubTasksQuery(request.Title));
-            return result.IsSuccess ? Ok(new { subtasks = result.Value }) : BadRequest(result.Error);
-        }
+            if (result.IsFailure)
+                return BadRequest(result.Error);
 
-        [HttpPost("estimate")]
-        public async Task<IActionResult> Estimate([FromBody] AiRequest request)
-        {
-            var result = await _sender.Send(new EstimateTimeQuery(request.Title));
-            return result.IsSuccess ? Ok(new { estimate = result.Value }) : BadRequest(result.Error);
-        }
-
-        [HttpPost("priority")]
-        public async Task<IActionResult> Priority([FromBody] AiPriorityRequest request)
-        {
-            var result = await _sender.Send(new SuggestPriorityQuery(request.Title,request.Description));
-            return result.IsSuccess ? Ok(new { priority = result.Value }) : BadRequest(result.Error);
+            return Ok(result.Value);
         }
     }
 }

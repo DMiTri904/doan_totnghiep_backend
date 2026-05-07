@@ -8,6 +8,7 @@ namespace project.Domain.Models
         public int GroupId { get; private set; }
         public int UserId { get; private set; }
         public bool IsActive { get; private set; } = true;
+        public MajorType MajorType { get; private set; }
         public GroupMemberRole Role { get; private set; } = GroupMemberRole.Member;
         public DateTime JoinedAt { get; private set; }
         public DateTime? LeftAt { get; private set; }
@@ -16,20 +17,25 @@ namespace project.Domain.Models
         public int Contribution { get; private set; } = 0;
         private GroupMem() { }
 
-        public static GroupMem Create(int groupId, int userId, GroupMemberRole role = GroupMemberRole.Member)
+        public static GroupMem Create(Groups group, int userId, GroupMemberRole role = GroupMemberRole.Member)
         {
             return new GroupMem
             {
-                GroupId = groupId,
+                Group = group,
                 UserId = userId,
                 Role = role,
                 IsActive = true,
                 JoinedAt = DateTime.UtcNow
             };
         }
-        public double TotalContribution(int Commit)
+        public double CalculateTotalContributionITStudent(int Commit)
         {
-            return Math.Round((Contribution * 0.6) + (Commit * 0.4),2);
+            return Math.Round((Contribution * 0.6) + (Commit * 0.4), 2);
+
+        }
+        public double CalculateTotalContributionGeneralStudent()
+        {
+            return Math.Round((Contribution * 1.0), 2);
         }
         public void AddContribution()
         {
@@ -58,8 +64,5 @@ namespace project.Domain.Models
         }
         public bool IsLeader() => Role == GroupMemberRole.Leader;
         public bool CanManageTasks() => Role is GroupMemberRole.Leader;
-
-
-
     }
 }

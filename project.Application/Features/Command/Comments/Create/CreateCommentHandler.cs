@@ -21,14 +21,16 @@ namespace project.Application.Features.Command.Comments.Create
         private readonly IGroupRepository _groupRepository;
         private readonly INotificationService _notificationService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IClassroomRepository _classRoomRepository;
         private readonly IMapper _mapper;
-        public CreateCommentHandler(IWorkTaskRepository taskRepository, IMapper mapper, IUnitOfWork unitOfWork, IGroupRepository groupRepository, INotificationService notificationService)
+        public CreateCommentHandler(IWorkTaskRepository taskRepository, IMapper mapper, IUnitOfWork unitOfWork, IGroupRepository groupRepository, INotificationService notificationService, IClassroomRepository classRoomRepository)
         {
             _taskRepository = taskRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _groupRepository = groupRepository;
             _notificationService = notificationService;
+            _classRoomRepository = classRoomRepository;
         }
 
         public async Task<Result<CommentModel>> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
@@ -41,6 +43,10 @@ namespace project.Application.Features.Command.Comments.Create
                 var group = await _groupRepository.GetByIdWithMemberAsync(task.GroupId);
                 if (group == null) return Result.Failure<CommentModel>(new Error("404", "Không tìm thấy nhóm"));
                 if (!group.IsActive) return Result.Failure<CommentModel>(new Error("403", "Không thể thêm bình luận vào nhóm bị vô hiệu hóa"));
+
+                var classRoom = await _classRoomRepository.GetByIdAsync(group.ClassRoomId);
+                if (classRoom == null) return Result.Failure<CommentModel>(new Error("404", "Không tìm thấy lớp học"));
+                if (!classRoom.IsActive) return Result.Failure<CommentModel>(new Error("403", "Không thể thêm bình luận vào lớp học bị vô hiệu hóa"));
 
                 var member = group.FindMember(request.UserId);
                 if (member == null) return Result.Failure<CommentModel>(new Error("403", "Bạn không phải là thành viên trong nhóm"));

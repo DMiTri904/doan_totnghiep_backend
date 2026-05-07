@@ -8,6 +8,10 @@ namespace project.Domain.Interfaces
         Task<Groups?> GetByIdWithMemberAsync(int id);
         Task<Groups?> GetByIdWithDetailAsync(int id);
         Task<List<Groups>> GetAllGroupsByUserIdAsync(int userId);
+        Task<Groups?> GetByIdWithTaskMemberAsync(int id);
+        Task<IReadOnlyList<Groups>> GetAllGroupsByClassId(int classId);
+        Task<List<Groups>> GetGroupsWithTasksByIdClassIdAsync(int classRoomId);
+        //Task<IReadOnlyList<Groups>> GetTasksGroupsByClassIdAsync(int classId);
 
     }
 }

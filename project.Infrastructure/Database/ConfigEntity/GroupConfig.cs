@@ -34,6 +34,9 @@ namespace project.Infrastructure.Database.ConfigEntity
                 .IsRequired()
                 .HasDefaultValue(true);
 
+            builder.Property(g => g.MajorType)
+                .HasConversion<string>();
+
             // Creator
             builder.HasOne(g => g.Creator)
                 .WithMany()
@@ -52,17 +55,22 @@ namespace project.Infrastructure.Database.ConfigEntity
                 .HasForeignKey(t => t.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ActivityLogs
-            builder.HasMany(g => g.ActivityLogs)
-                .WithOne(a => a.Group)
-                .HasForeignKey(a => a.GroupId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             // Reports
             builder.HasMany(g => g.Reports)
                 .WithOne(r => r.Group)
                 .HasForeignKey(r => r.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Enrollment
+            builder.HasIndex(g => g.EnrollmentId)
+                .IsUnique()
+                .HasFilter("[EnrollmentId] IS NOT NULL");
+
+            builder.HasOne(x => x.ClassEnrollment)
+                .WithOne(x => x.Groups)
+                .HasForeignKey<Groups>(x => x.EnrollmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

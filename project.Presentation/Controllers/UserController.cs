@@ -81,7 +81,7 @@ namespace project.Presentation.Controllers
 
             if (result.Failed > 0)
             {
-                return Ok(new { Message = $"Import hoàn tất: {result.Success} thành công, {result.Failed} thất bại, {result.Errors}" });
+                return Ok(new { Message = $"Import hoàn tất: {result.Success} thành công, {result.Failed} thất bại" });
             }
             return Ok(new { Message = $"Import thành công {result.Success} người dùng" });
         }

@@ -16,6 +16,7 @@ namespace project.Application.Features.Query.Group.GetAllGroupByUser
     {
         private readonly IGroupRepository _groupRepository;
         private readonly IMapper _mapper;
+
         public GetGroupsByUserHandler(IGroupRepository groupRepository, IMapper mapper)
         {
             _groupRepository = groupRepository;

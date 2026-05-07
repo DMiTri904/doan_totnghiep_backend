@@ -14,23 +14,18 @@ namespace project.Domain.Models
         public DateTime? CompletedAt { get; private set; }
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
-
-
         public int GroupId { get; private set; }
         public Groups Groups { get; private set; }
-
         public int? AssignedTo { get; private set; }
         public UserApp? Assignee { get; private set; }
-
         public UserApp Creator { get; private set; }
         public int CreatedBy { get; private set; }
+        public bool? HasBranch { get; private set; }
         public ICollection<Comment> Comments => _comments.AsReadOnly();
-        public ICollection<TaskHistory> TaskHistories => _taskHistories.AsReadOnly();
-        public ICollection<TaskLabel> TaskLabels => _taskLabels.AsReadOnly();
+        public ICollection<TaskHistory> History => _history.AsReadOnly();
 
-        private List<Comment> _comments = new List<Comment>();
-        private List<TaskHistory> _taskHistories = new List<TaskHistory>();
-        private List<TaskLabel> _taskLabels = new List<TaskLabel>();
+        private readonly List<Comment> _comments = new List<Comment>();
+        private readonly List<TaskHistory> _history = new List<TaskHistory>();
 
         private WorkTask() { }
         public static WorkTask Create(int groupId, string title, int createdBy, TasksStatus taskStatus, TaskPriority priority = TaskPriority.Medium, int? assignedTo = null, DateTime? duedate = null)
@@ -51,7 +46,14 @@ namespace project.Domain.Models
             };
             
         }
-
+        public void ActivateBranch()
+        {
+            HasBranch = true;
+        }
+        public void DeactivateBranch()
+        {
+            HasBranch = false;
+        }
         public void Assign(int userId)
         {
             if (Status == TasksStatus.Done) throw new DomainException($"Không thể bắt đầu với trạng thái {Status}");
@@ -104,7 +106,6 @@ namespace project.Domain.Models
             Status = TasksStatus.InProgress;
             CompletedAt = null;
             UpdatedAt = DateTime.UtcNow;
-
         }
 
         public void UpdateDetails(string title, string? description, TaskPriority priority, TasksStatus taskStatus, DateTime? dueDate = null, int? assignedTo = null)
@@ -133,22 +134,5 @@ namespace project.Domain.Models
         public bool IsOverdue() => DueDate.HasValue && DueDate.Value < DateTime.UtcNow && Status != TasksStatus.Done;
         public bool IsAssigned() => AssignedTo.HasValue;
         public TimeSpan? Duration => CompletedAt.HasValue && StartDate.HasValue ? CompletedAt.Value - StartDate.Value : null;
-
-
-        // LABEL
-        public void AddLabel(TaskLabel label)
-        {
-            if (_taskLabels.Any(l => l.LabelId == label.LabelId)) throw new DomainException("Label đã được gắn vào task này rồi");
-
-            _taskLabels.Add(label);
-            UpdatedAt = DateTime.UtcNow;
-        }
-        public void RemoveLabel(int labelId)
-        {
-            var label = _taskLabels.FirstOrDefault(l => l.LabelId == labelId);
-            if (label == null) throw new DomainException("Label không tồn tại trong task");
-            _taskLabels.Remove(label);
-            UpdatedAt = DateTime.UtcNow;
-        }
     }
 }

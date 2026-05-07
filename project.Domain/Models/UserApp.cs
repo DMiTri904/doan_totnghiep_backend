@@ -21,20 +21,22 @@ namespace project.Domain.Models
         // Github username prop
         public string? GithubUserName { get; private set; }
         public long? GithubId { get; private set; }
+        public string? GithubAccessToken { get; private set; }
 
         public ICollection<GroupMem> GroupMembers => _groupMembers.AsReadOnly();
         public ICollection<WorkTask> AssignedTasks => _assignedTasks.AsReadOnly();
         public ICollection<Comment> Comments => _comments.AsReadOnly();
-        public ICollection<TaskHistory> TaskHistories => _taskHistories.AsReadOnly();
-        public ICollection<ActivityLog> ActivityLogs => _activityLogs.AsReadOnly();
         public ICollection<Notification> Notifications => _notifications.AsReadOnly();
+        public ICollection<Classroom> OwnedClassrooms => _ownedClassrooms.AsReadOnly();
+        public ICollection<ClassEnrollment> ClassEnrollments => _classEnrollments.AsReadOnly();
+
 
         private readonly List<GroupMem> _groupMembers = new();
         private readonly List<WorkTask> _assignedTasks = new();
         private readonly List<Comment> _comments = new();
-        private readonly List<TaskHistory> _taskHistories = new();
-        private readonly List<ActivityLog> _activityLogs = new();
         private readonly List<Notification> _notifications = new();
+        private readonly List<Classroom> _ownedClassrooms = new();
+        private readonly List<ClassEnrollment> _classEnrollments = new();
 
         private UserApp() { }
 
@@ -82,10 +84,11 @@ namespace project.Domain.Models
                 && ResetPasswordTokenExpiry.HasValue
                 && ResetPasswordTokenExpiry.Value > DateTime.UtcNow;
         }
-        public void LinkGitHubAccount(string githubUserName, long githubId)
+        public void LinkGitHubAccount(string githubUserName, long githubId, string accessToken)
         {
             GithubUserName = githubUserName;
             GithubId = githubId;
+            GithubAccessToken = accessToken;
         }
         public void VerifyGithubAccount()
         {

@@ -9,24 +9,31 @@
         public string Title { get; private set; }
         public string? FilePath { get; private set; }
         public DateTime CreatedAt { get; private set; }
-        public ReportType Status { get;private set; }
+        public ReportType Status { get; private set; }
         public Groups Group { get; private set; }
         public UserApp User { get; private set; }
 
         private Report() { }
 
-        public Report(int groupId, int generatedBy, string title)
+        public static Report Create(int groupId, int generatedBy, string title)
         {
             if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Tiêu đề không thể trống");
 
-            GroupId = groupId;
-            GeneratedBy = generatedBy;
-            Title = title;
-            CreatedAt = DateTime.UtcNow;
+            return new Report
+            {
+                GroupId = groupId,
+                GeneratedBy = generatedBy,
+                Title = title,
+                CreatedAt = DateTime.UtcNow,
+            };
         }
         public void StartGenerating()
         {
-            if (Status != ReportType.Draft) throw new InvalidOperationException("Bản báo cáo bị lỗi khi đang tạo");
+            if (Status != ReportType.Draft)
+            {
+                throw new InvalidOperationException("Bản báo cáo bị lỗi khi đang tạo");
+            }
+            Status = ReportType.Generating;
         }
 
         public void CompleteReport(string filePath)

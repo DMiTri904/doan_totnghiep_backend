@@ -40,6 +40,9 @@ namespace project.Infrastructure.Database.ConfigEntity
             builder.Property(u => u.UserRole)
                 .HasConversion<string>()
                 .HasMaxLength(20);
+
+            builder.Property(u => u.GithubAccessToken)
+                .IsRequired(false);
         }
     }
 }

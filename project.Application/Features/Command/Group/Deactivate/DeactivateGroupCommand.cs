@@ -10,8 +10,5 @@ namespace project.Application.Features.Command.Group.Deactivate
 {
     public sealed record DeactivateGroupCommand(int GroupId, int UserId) : IRequest<Result>
     {
-        
-
-
     }
 }

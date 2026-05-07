@@ -22,7 +22,7 @@ namespace project.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("project.Domain.Models.ActivityLog", b =>
+            modelBuilder.Entity("project.Domain.Models.ClassEnrollment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,30 +30,87 @@ namespace project.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ActionType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                    b.Property<int>("ClassroomId")
+                        .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<int?>("GroupId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime>("JoinedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RelatedEntityId")
-                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<string>("UserRole")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("GroupId");
+                    b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ActivityLogs", (string)null);
+                    b.HasIndex("ClassroomId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ClassEnrollment", (string)null);
+                });
+
+            modelBuilder.Entity("project.Domain.Models.Classroom", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClassCode")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<string>("ClassName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("MajorType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MaxMembersPerGroup")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubjectName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("TeacherId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassCode")
+                        .IsUnique();
+
+                    b.HasIndex("TeacherId");
+
+                    b.ToTable("ClassRoom", (string)null);
                 });
 
             modelBuilder.Entity("project.Domain.Models.Comment", b =>
@@ -125,6 +182,9 @@ namespace project.Infrastructure.Migrations
                     b.Property<DateTime?>("LeftAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("MajorType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -151,10 +211,16 @@ namespace project.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ClassRoomId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EnrollmentId")
                         .HasColumnType("int");
 
                     b.Property<string>("GithubRepoUrl")
@@ -168,6 +234,10 @@ namespace project.Infrastructure.Migrations
                     b.Property<int>("LimitedUser")
                         .HasColumnType("int");
 
+                    b.Property<string>("MajorType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -180,37 +250,15 @@ namespace project.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClassRoomId");
+
                     b.HasIndex("CreatedBy");
 
+                    b.HasIndex("EnrollmentId")
+                        .IsUnique()
+                        .HasFilter("[EnrollmentId] IS NOT NULL");
+
                     b.ToTable("Groups", (string)null);
-                });
-
-            modelBuilder.Entity("project.Domain.Models.Label", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasMaxLength(7)
-                        .HasColumnType("nvarchar(7)");
-
-                    b.Property<int>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GroupId");
-
-                    b.ToTable("Labels", (string)null);
                 });
 
             modelBuilder.Entity("project.Domain.Models.Notification", b =>
@@ -311,17 +359,13 @@ namespace project.Infrastructure.Migrations
 
                     b.Property<string>("NewStatus")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("OldStatus")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("TaskId")
                         .HasColumnType("int");
@@ -332,22 +376,7 @@ namespace project.Infrastructure.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("TaskHistories", (string)null);
-                });
-
-            modelBuilder.Entity("project.Domain.Models.TaskLabel", b =>
-                {
-                    b.Property<int>("TaskId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LabelId")
-                        .HasColumnType("int");
-
-                    b.HasKey("TaskId", "LabelId");
-
-                    b.HasIndex("LabelId");
-
-                    b.ToTable("TaskLabels", (string)null);
+                    b.ToTable("TaskHistory", (string)null);
                 });
 
             modelBuilder.Entity("project.Domain.Models.UserApp", b =>
@@ -366,6 +395,9 @@ namespace project.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("GithubAccessToken")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<long?>("GithubId")
                         .HasColumnType("bigint");
@@ -447,6 +479,9 @@ namespace project.Infrastructure.Migrations
                     b.Property<int>("GroupId")
                         .HasColumnType("int");
 
+                    b.Property<bool?>("HasBranch")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Priority")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -479,23 +514,34 @@ namespace project.Infrastructure.Migrations
                     b.ToTable("WorkTasks", (string)null);
                 });
 
-            modelBuilder.Entity("project.Domain.Models.ActivityLog", b =>
+            modelBuilder.Entity("project.Domain.Models.ClassEnrollment", b =>
                 {
-                    b.HasOne("project.Domain.Models.Groups", "Group")
-                        .WithMany("ActivityLogs")
-                        .HasForeignKey("GroupId")
+                    b.HasOne("project.Domain.Models.Classroom", "Classroom")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("ClassroomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("project.Domain.Models.UserApp", "User")
-                        .WithMany("ActivityLogs")
+                        .WithMany("ClassEnrollments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Group");
+                    b.Navigation("Classroom");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("project.Domain.Models.Classroom", b =>
+                {
+                    b.HasOne("project.Domain.Models.UserApp", "Teacher")
+                        .WithMany("OwnedClassrooms")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("project.Domain.Models.Comment", b =>
@@ -545,22 +591,28 @@ namespace project.Infrastructure.Migrations
 
             modelBuilder.Entity("project.Domain.Models.Groups", b =>
                 {
+                    b.HasOne("project.Domain.Models.Classroom", "Classroom")
+                        .WithMany("Groups")
+                        .HasForeignKey("ClassRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("project.Domain.Models.UserApp", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Creator");
-                });
+                    b.HasOne("project.Domain.Models.ClassEnrollment", "ClassEnrollment")
+                        .WithOne("Groups")
+                        .HasForeignKey("project.Domain.Models.Groups", "EnrollmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity("project.Domain.Models.Label", b =>
-                {
-                    b.HasOne("project.Domain.Models.Groups", null)
-                        .WithMany()
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Navigation("ClassEnrollment");
+
+                    b.Navigation("Classroom");
+
+                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("project.Domain.Models.Notification", b =>
@@ -596,13 +648,13 @@ namespace project.Infrastructure.Migrations
             modelBuilder.Entity("project.Domain.Models.TaskHistory", b =>
                 {
                     b.HasOne("project.Domain.Models.UserApp", "User")
-                        .WithMany("TaskHistories")
+                        .WithMany()
                         .HasForeignKey("ChangedBy")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("project.Domain.Models.WorkTask", "Task")
-                        .WithMany("TaskHistories")
+                        .WithMany("History")
                         .HasForeignKey("TaskId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -610,25 +662,6 @@ namespace project.Infrastructure.Migrations
                     b.Navigation("Task");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("project.Domain.Models.TaskLabel", b =>
-                {
-                    b.HasOne("project.Domain.Models.Label", "Label")
-                        .WithMany("TaskLabels")
-                        .HasForeignKey("LabelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("project.Domain.Models.WorkTask", "Task")
-                        .WithMany("TaskLabels")
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Label");
-
-                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("project.Domain.Models.WorkTask", b =>
@@ -657,6 +690,18 @@ namespace project.Infrastructure.Migrations
                     b.Navigation("Groups");
                 });
 
+            modelBuilder.Entity("project.Domain.Models.ClassEnrollment", b =>
+                {
+                    b.Navigation("Groups");
+                });
+
+            modelBuilder.Entity("project.Domain.Models.Classroom", b =>
+                {
+                    b.Navigation("Enrollments");
+
+                    b.Navigation("Groups");
+                });
+
             modelBuilder.Entity("project.Domain.Models.Comment", b =>
                 {
                     b.Navigation("Replies");
@@ -664,8 +709,6 @@ namespace project.Infrastructure.Migrations
 
             modelBuilder.Entity("project.Domain.Models.Groups", b =>
                 {
-                    b.Navigation("ActivityLogs");
-
                     b.Navigation("Members");
 
                     b.Navigation("Reports");
@@ -673,16 +716,11 @@ namespace project.Infrastructure.Migrations
                     b.Navigation("Tasks");
                 });
 
-            modelBuilder.Entity("project.Domain.Models.Label", b =>
-                {
-                    b.Navigation("TaskLabels");
-                });
-
             modelBuilder.Entity("project.Domain.Models.UserApp", b =>
                 {
-                    b.Navigation("ActivityLogs");
-
                     b.Navigation("AssignedTasks");
+
+                    b.Navigation("ClassEnrollments");
 
                     b.Navigation("Comments");
 
@@ -690,16 +728,14 @@ namespace project.Infrastructure.Migrations
 
                     b.Navigation("Notifications");
 
-                    b.Navigation("TaskHistories");
+                    b.Navigation("OwnedClassrooms");
                 });
 
             modelBuilder.Entity("project.Domain.Models.WorkTask", b =>
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("TaskHistories");
-
-                    b.Navigation("TaskLabels");
+                    b.Navigation("History");
                 });
 #pragma warning restore 612, 618
         }

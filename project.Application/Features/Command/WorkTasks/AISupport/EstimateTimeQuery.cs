@@ -10,31 +10,32 @@ using System.Threading.Tasks;
 
 namespace project.Application.Features.Command.WorkTasks.AISupport
 {
-    public sealed record EstimateTimeQuery(string Title) : IRequest<Result<string>>
+    public sealed record AISuportCommand(string ActionType, string TaskTitle, string? TaskDescription) : IRequest<Result<string?>>
     {
     }
-    public sealed class EstimateTimeHandler : IRequestHandler<EstimateTimeQuery, Result<string>>
+    public class AISupportQueryHandler : IRequestHandler<AISuportCommand, Result<string?>>
     {
         private readonly IGeminiService _geminiService;
-        public EstimateTimeHandler(IGeminiService geminiService)
+
+        public AISupportQueryHandler(IGeminiService geminiService)
         {
             _geminiService = geminiService;
         }
-        public async Task<Result<string>> Handle(EstimateTimeQuery request, CancellationToken cancellationToken)
+
+        public async Task<Result<string?>> Handle(AISuportCommand request, CancellationToken cancellationToken)
         {
-            try
+            var result = request.ActionType switch
             {
-                if (string.IsNullOrWhiteSpace(request.Title))
-                    return Result.Failure<string>(new Error("400", "Tiêu đề task không được để trống"));
-                var estimate = await _geminiService.EstimateTimeAsync(request.Title);
-                if (estimate == null)
-                    return Result.Failure<string>(new Error("500", "Không thể ước lượng thời gian lúc này"));
-                return Result.Success(estimate);
-            }
-            catch(DomainException ex)
-            {
-                return Result.Failure<string>(new Error("400", ex.Message));
-            }
+                "description" => await _geminiService.GenerateTaskDescriptionAsync(request.TaskTitle),
+                "subtasks" => await _geminiService.SuggestSubTasksAsync(request.TaskTitle),
+                "estimate" => await _geminiService.EstimateTimeAsync(request.TaskTitle),
+                "priority" => await _geminiService.SuggestPriorityAsync(request.TaskTitle, request.TaskDescription ?? ""),
+                _ => null
+            };
+            if (result is null)
+                return Result.Failure<string?>(new Error("AI.InvalidAction", "ActionType không hợp lệ"));
+
+            return Result.Success<string?>(result);
         }
     }
 }

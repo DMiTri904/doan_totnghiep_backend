@@ -1,21 +1,21 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using project.Application.Features.Command.WorkTasks.AddTaskLabel;
 using project.Application.Features.Command.WorkTasks.AISupport;
 using project.Application.Features.Command.WorkTasks.Assign;
 using project.Application.Features.Command.WorkTasks.Complete;
 using project.Application.Features.Command.WorkTasks.Create;
 using project.Application.Features.Command.WorkTasks.Delete;
 using project.Application.Features.Command.WorkTasks.Reject;
-using project.Application.Features.Command.WorkTasks.RemoveTaskLabel;
 using project.Application.Features.Command.WorkTasks.SetDueDate;
 using project.Application.Features.Command.WorkTasks.Start;
 using project.Application.Features.Command.WorkTasks.Test;
 using project.Application.Features.Command.WorkTasks.Update;
 using project.Application.Features.Query.WorkTask.GetById;
 using project.Application.Features.Query.WorkTask.GetTaskDetail;
+using project.Application.Features.Query.WorkTask.GetTaskHistoryById;
 using project.Application.Features.Query.WorkTask.GetTasks;
+using project.Application.Features.Query.WorkTask.GetTasksOverdue;
 using project.Domain.Models;
 using project.Presentation.Extension;
 using project.Presentation.Models;
@@ -29,8 +29,6 @@ namespace project.Presentation.Controllers
         public TaskController(ISender sender) : base(sender)
         {
         }
-
-
         [HttpGet("group/{groupId}/tasks")]
         public async Task<IActionResult> GetTasks(int groupId, [FromQuery] int? labelId, [FromQuery] TasksStatus? taskStatus, [FromQuery] TaskPriority? taskPriority)
         {
@@ -90,7 +88,7 @@ namespace project.Presentation.Controllers
         {
             var user = User.GetUserId();
             if (user == null) return Unauthorized();
-            var command = new StartTaskCommand(id,user.Value);
+            var command = new StartTaskCommand(id, user.Value);
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
@@ -113,19 +111,6 @@ namespace project.Presentation.Controllers
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
         [HttpPost("task/{taskId}/labels/{labelId}")]
-        public async Task<IActionResult> AddLabel(int taskId, int labelId)
-        {
-            var command = new AddTaskLabelCommand(taskId, labelId);
-            var result = await _sender.Send(command);
-            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
-        }
-        [HttpDelete("task/{taskId}/labels/{labelId}")]
-        public async Task<IActionResult> RemoveLabel(int taskId, int labelId)
-        {
-            var command = new RemoveTaskLabelCommand(taskId, labelId);
-            var result = await _sender.Send(command);
-            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
-        }
         [HttpPut("task/{taskId}/test")]
         public async Task<IActionResult> Test(int taskId)
         {
@@ -150,6 +135,24 @@ namespace project.Presentation.Controllers
             var user = User.GetUserId();
             if (user == null) return Unauthorized();
             var query = new GetTaskDetailQuery(taskId, user.Value);
+            var result = await _sender.Send(query);
+            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        }
+        [HttpGet("task/{taskId}/history")]
+        public async Task<IActionResult> GetTaskHistoryById(int taskId)
+        {
+            var user = User.GetUserId();
+            if (user == null) return Unauthorized();
+            var query = new GetTaskWithHistoryQuery(taskId, user.Value);
+            var result = await _sender.Send(query);
+            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        }
+        [HttpGet("group/{groupId}/tasks/overdue")]
+        public async Task<IActionResult> GetOverdueTasks(int groupId)
+        {
+            var user = User.GetUserId();
+            if (user == null) return Unauthorized();
+            var query = new GetTasksOverdueQuery(user.Value, groupId);
             var result = await _sender.Send(query);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }

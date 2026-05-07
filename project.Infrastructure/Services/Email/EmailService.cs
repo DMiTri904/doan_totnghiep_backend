@@ -28,7 +28,7 @@ namespace project.Infrastructure.Services.Email
             mimeMessage.From.Add(new MailboxAddress("", _emailconfig.FromAddress));
             mimeMessage.To.AddRange(msg.To.Select(x => MailboxAddress.Parse(x)));
             mimeMessage.Subject = msg.Subject;
-            mimeMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = msg.Body };
+            mimeMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = msg.Body };
 
             using (var client = new SmtpClient())
             {
