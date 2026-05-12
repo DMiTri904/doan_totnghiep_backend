@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using project.Application.Interfaces;
 using project.Domain.Interfaces;
@@ -22,13 +23,14 @@ namespace project.Application.Features.Command.Github
         private readonly IUserRepository _userRepository;
         private readonly IMemoryCache _memoryCache;
         private readonly IUnitOfWork _unitOfWork;
-
-        public LinkGithubHandler(IUnitOfWork unitOfWork, IMemoryCache memoryCache, IUserRepository userRepository, IGithubOAuthService github)
+        private readonly string clientUrl;
+        public LinkGithubHandler(IUnitOfWork unitOfWork, IMemoryCache memoryCache, IUserRepository userRepository, IGithubOAuthService github, IConfiguration config)
         {
             _unitOfWork = unitOfWork;
             _memoryCache = memoryCache;
             _userRepository = userRepository;
             _github = github;
+            clientUrl = config["App:FrontendUrl:0"] ?? throw new ArgumentNullException("Không tìm thấy clientUrl");
         }
 
         public async Task<LinkGithubResult> Handle(LinkGithuhCommand request, CancellationToken cancellationToken)
@@ -58,9 +60,9 @@ namespace project.Application.Features.Command.Github
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new LinkGithubResult(true);
+            return new LinkGithubResult(true, clientUrl);
         }
     }
 
-    public  record LinkGithubResult(bool Success, string? Error = null);
+    public  record LinkGithubResult(bool Success, string? ClientUrl, string? Error = null);
 }

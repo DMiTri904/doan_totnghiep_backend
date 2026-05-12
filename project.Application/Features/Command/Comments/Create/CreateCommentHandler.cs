@@ -48,9 +48,11 @@ namespace project.Application.Features.Command.Comments.Create
                 if (classRoom == null) return Result.Failure<CommentModel>(new Error("404", "Không tìm thấy lớp học"));
                 if (!classRoom.IsActive) return Result.Failure<CommentModel>(new Error("403", "Không thể thêm bình luận vào lớp học bị vô hiệu hóa"));
 
-                var member = group.FindMember(request.UserId);
-                if (member == null) return Result.Failure<CommentModel>(new Error("403", "Bạn không phải là thành viên trong nhóm"));
-
+                if (classRoom.TeacherId != request.UserId) {
+                    var member = group.FindMember(request.UserId);
+                    if (member == null) return Result.Failure<CommentModel>(new Error("403", "Bạn không phải là thành viên trong nhóm"));
+                }
+                
                 var comment = Comment.Create(request.TaskId, request.UserId, request.Content, request.ParentCommentId);
 
                 await _unitOfWork.Repository<Comment>().AddAsync(comment);
@@ -58,7 +60,8 @@ namespace project.Application.Features.Command.Comments.Create
 
                 if(comment.UserId != request.UserId)
                 {
-                    var notification = Notification.Create(task.AssignedTo!.Value, $"{member.User.UserName} vừa bình luận vào task {task.Title} trong nhóm {group.Name}", null, group.Id, "Comment", comment.Id);
+                    var member = group.FindMember(request.UserId);
+                    var notification = Notification.Create(task.AssignedTo!.Value, $"{member!.User.UserName} vừa bình luận vào task {task.Title} trong nhóm {group.Name}", null, group.Id, "Comment", comment.Id);
                     await _notificationService.SendNotificationAsync(notification,cancellationToken);
                 }
                 var dto = _mapper.Map<CommentModel>(comment);

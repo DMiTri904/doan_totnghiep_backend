@@ -31,10 +31,15 @@ namespace project.Application.Features.Command.Group.Delete
             if (member == null) return Result.Failure(new Error("403", "Bạn không phải là thành viên của nhóm này"));
             if (!member.IsLeader()) return Result.Failure(new Error("403", "Bạn không phải là trưởng nhóm"));
 
-            var classroom = await _classRoomRepository.GetByIdAsync(group.ClassRoomId);
+            var classroom = await _classRoomRepository.GetClassroomWithEnrollmentsAsync(group.ClassRoomId);
             if (classroom == null) return Result.Failure(new Error("404", "Không tìm thấy lớp học"));
             if (!classroom.IsActive) return Result.Failure(new Error("403", "Không thể thao tác trên lớp học bị vô hiệu hóa"));
 
+            var enrollment = classroom.FindEnrollment(request.RequetedBy);
+            if (enrollment == null || !enrollment.IsActive) return Result.Failure(new Error("403", "Bạn không phải là thành viên trong lớp"));
+            enrollment.UnsetGroup();
+
+            await _unitOfWork.Repository<Classroom>().UpdateAsync(classroom);
             _unitOfWork.Repository<Groups>().DeleteAsync(group);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

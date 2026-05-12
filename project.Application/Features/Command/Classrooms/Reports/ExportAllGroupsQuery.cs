@@ -15,9 +15,9 @@ using System.Threading.Tasks;
 
 namespace project.Application.Features.Command.Classrooms.Reports
 {
-    public sealed record ExportAllGroupsQuery(int RequestedBy, int ClassroomId) : IRequest<Result<ExportGroups>> { }
+    public sealed record ExportAllGroupsQuery(int RequestedBy, int ClassroomId) : IRequest<Result> { }
 
-    public sealed class ExportAllGroupsHandler : IRequestHandler<ExportAllGroupsQuery, Result<ExportGroups>>
+    public sealed class ExportAllGroupsHandler : IRequestHandler<ExportAllGroupsQuery, Result>
     {
         private readonly IGithubService _githubService;
         private readonly IClassroomRepository _classRoomRepository;
@@ -38,7 +38,7 @@ namespace project.Application.Features.Command.Classrooms.Reports
             _workTaskRepository = workTaskRepository;
             _groupRepistory = groupRepistory;
         }
-        public async Task<Result<ExportGroups>> Handle(ExportAllGroupsQuery request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(ExportAllGroupsQuery request, CancellationToken cancellationToken)
         {
             var classroom = await _classRoomRepository.GetByIdAsync(request.ClassroomId);
             if (classroom == null)
@@ -92,7 +92,7 @@ namespace project.Application.Features.Command.Classrooms.Reports
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            return Result.Success(exportResult);
+            return Result.Success();
         }
         private Task<GroupReportModel> BuildGeneralReportAsync(Groups g)
         {

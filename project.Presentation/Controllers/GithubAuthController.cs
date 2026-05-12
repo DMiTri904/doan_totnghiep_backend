@@ -11,10 +11,8 @@ namespace project.Presentation.Controllers
     [Route("api/auth/github")]
     public class GithubAuthController : ApiController
     {
-        private readonly IConfiguration _configuration;
-        public GithubAuthController(ISender sender, IConfiguration configuration) : base(sender)
+        public GithubAuthController(ISender sender) : base(sender)
         {
-            _configuration = configuration;
         }
 
         [HttpPost("link")]
@@ -30,9 +28,8 @@ namespace project.Presentation.Controllers
         public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string state)
         {
             var result = await _sender.Send(new LinkGithuhCommand(code, state));
-            var fronendUrl = _configuration["App:FrontendUrl"];
             var errorMessage = Uri.EscapeDataString(result.Error ?? "error");
-            return result.Success ? Redirect($"{fronendUrl}/profile?github=success") : Redirect($"{fronendUrl}/settings?github={errorMessage}");
+            return result.Success ? Redirect($"{result.ClientUrl}/profile?github=success") : Redirect($"{result.ClientUrl}/settings?github={errorMessage}");
 
         }
     }
