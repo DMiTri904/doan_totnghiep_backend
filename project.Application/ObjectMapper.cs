@@ -50,6 +50,7 @@ namespace project.Application
 
 
             CreateMap<Comment, CommentModel>()
+                .ForMember(d => d.CreatedBy, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(d => d.User, opt => opt.MapFrom(src => src.User));
 
             CreateMap<UserApp, CommentUserModel>()

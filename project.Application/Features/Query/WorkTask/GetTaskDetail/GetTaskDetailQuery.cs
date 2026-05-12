@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using AutoMapper.Features;
+using MediatR;
 using project.Application.Interfaces;
 using project.Application.ModelsDto;
 using project.Domain.Helpers;
@@ -26,11 +27,13 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
         private readonly IWorkTaskRepository _taskRepository;
         private readonly IGithubService _githubService;
         private readonly IGroupRepository _groupRepository;
-        public GetTaskDetailHander(IGroupRepository groupRepository, IGithubService githubService, IWorkTaskRepository taskRepository)
+        private readonly IClassroomRepository _classRoomRepository;
+        public GetTaskDetailHander(IGroupRepository groupRepository, IGithubService githubService, IWorkTaskRepository taskRepository, IClassroomRepository classRoomRepository)
         {
             _groupRepository = groupRepository;
             _githubService = githubService;
             _taskRepository = taskRepository;
+            _classRoomRepository = classRoomRepository;
         }
 
         public async Task<Result<TaskDetailModel>> Handle(GetTaskDetailQuery request, CancellationToken cancellationToken)
@@ -42,8 +45,15 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
             if (group == null) return Result.Failure<TaskDetailModel>(new Error("404", "Không tìm thấy nhóm"));
             if (!group.IsActive) return Result.Failure<TaskDetailModel>(new Error("403", "Nhóm đã bị vô hiệu hóa"));
 
-            var member = group.FindMember(request.RequestedBy);
-            if (member == null) return Result.Failure<TaskDetailModel>(new Error("403", "Bạn không có quyền xem task này"));
+            var classRoom = await _classRoomRepository.GetByIdAsync(group.Id);
+            if (classRoom == null) return Result.Failure<TaskDetailModel>(new Error("404", "Không tìm thấy lớp"));
+
+
+            if (classRoom.TeacherId != request.RequestedBy)
+            {
+                var member = group.FindMember(request.RequestedBy);
+                if (member == null) return Result.Failure<TaskDetailModel>(new Error("403", "Bạn không có quyền xem task này"));
+            }
 
             if (group.GithubRepoUrl != null)
             {

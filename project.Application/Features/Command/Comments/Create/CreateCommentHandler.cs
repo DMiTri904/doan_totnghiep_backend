@@ -23,7 +23,8 @@ namespace project.Application.Features.Command.Comments.Create
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClassroomRepository _classRoomRepository;
         private readonly IMapper _mapper;
-        public CreateCommentHandler(IWorkTaskRepository taskRepository, IMapper mapper, IUnitOfWork unitOfWork, IGroupRepository groupRepository, INotificationService notificationService, IClassroomRepository classRoomRepository)
+        private readonly IUserRepository _userRepository;
+        public CreateCommentHandler(IWorkTaskRepository taskRepository, IMapper mapper, IUnitOfWork unitOfWork, IGroupRepository groupRepository, INotificationService notificationService, IClassroomRepository classRoomRepository, IUserRepository userRepository)
         {
             _taskRepository = taskRepository;
             _mapper = mapper;
@@ -31,6 +32,7 @@ namespace project.Application.Features.Command.Comments.Create
             _groupRepository = groupRepository;
             _notificationService = notificationService;
             _classRoomRepository = classRoomRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<Result<CommentModel>> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
@@ -44,7 +46,7 @@ namespace project.Application.Features.Command.Comments.Create
                 if (group == null) return Result.Failure<CommentModel>(new Error("404", "Không tìm thấy nhóm"));
                 if (!group.IsActive) return Result.Failure<CommentModel>(new Error("403", "Không thể thêm bình luận vào nhóm bị vô hiệu hóa"));
 
-                var classRoom = await _classRoomRepository.GetByIdAsync(group.ClassRoomId);
+                var classRoom = await _classRoomRepository.GetClassroomWithEnrollmentsAsync(group.ClassRoomId);
                 if (classRoom == null) return Result.Failure<CommentModel>(new Error("404", "Không tìm thấy lớp học"));
                 if (!classRoom.IsActive) return Result.Failure<CommentModel>(new Error("403", "Không thể thêm bình luận vào lớp học bị vô hiệu hóa"));
 
@@ -52,16 +54,18 @@ namespace project.Application.Features.Command.Comments.Create
                     var member = group.FindMember(request.UserId);
                     if (member == null) return Result.Failure<CommentModel>(new Error("403", "Bạn không phải là thành viên trong nhóm"));
                 }
-                
+
+                var user = await _userRepository.GetByIdAsync(request.UserId);
+
                 var comment = Comment.Create(request.TaskId, request.UserId, request.Content, request.ParentCommentId);
 
                 await _unitOfWork.Repository<Comment>().AddAsync(comment);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                if(comment.UserId != request.UserId)
+                if(task.AssignedTo != request.UserId) // chỉ thông báo nếu người comment task này không phải là người nhận task này
                 {
                     var member = group.FindMember(request.UserId);
-                    var notification = Notification.Create(task.AssignedTo!.Value, $"{member!.User.UserName} vừa bình luận vào task {task.Title} trong nhóm {group.Name}", null, group.Id, "Comment", comment.Id);
+                    var notification = Notification.Create(task.AssignedTo!.Value, $"{user!.UserName} vừa bình luận vào task {task.Title} trong nhóm {group.Name}", null, group.Id, "Comment", comment.Id);
                     await _notificationService.SendNotificationAsync(notification,cancellationToken);
                 }
                 var dto = _mapper.Map<CommentModel>(comment);
