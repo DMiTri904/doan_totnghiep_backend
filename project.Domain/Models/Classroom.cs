@@ -174,5 +174,9 @@ namespace project.Domain.Models
         {
             return _groups.Count(e => e.IsActive);
         }
+        public void RemoveStudent(ClassEnrollment student)
+        {
+            _enrollments.Remove(student);
+        }
     }
 }
