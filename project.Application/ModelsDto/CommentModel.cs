@@ -13,6 +13,7 @@ namespace project.Application.ModelsDto
         public string Content { get; set; } = string.Empty;
         public bool IsDeleted { get; set; }
         public bool IsEdited { get; set; }
+        public bool IsTeacher { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;
         public int CreatedBy { get; set; }
