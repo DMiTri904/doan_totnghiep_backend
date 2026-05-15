@@ -24,13 +24,20 @@ namespace project.Infrastructure.Repositories
         public async Task<IReadOnlyList<Comment?>> GetCommentsByTaskIdAsync(int taskId)
         {
             return await _context.Comment
-                        .Where(c => c.TaskId == taskId && !c.IsDeleted)
-                        .Include(c => c.User)
-                        .Include(c => c.Replies.Where(r => !r.IsDeleted))
-                        .ThenInclude(r => r.User)
-                        .AsSplitQuery()
-                        .OrderBy(c => c.CreatedAt)
-                        .ToListAsync();
+                .Where(c => c.TaskId == taskId && !c.IsDeleted)
+                .Include(c => c.User)
+                .Include(c => c.Task)                       
+                    .ThenInclude(t => t.Groups)              
+                        .ThenInclude(g => g.Classroom)      
+                .Include(c => c.Replies.Where(r => !r.IsDeleted))
+                    .ThenInclude(r => r.User)
+                .Include(c => c.Replies.Where(r => !r.IsDeleted))  
+                    .ThenInclude(r => r.Task)                       
+                        .ThenInclude(t => t.Groups)                  
+                            .ThenInclude(g => g.Classroom)          
+                .AsSplitQuery()
+                .OrderBy(c => c.CreatedAt)
+                .ToListAsync();
         }
     }
 }
