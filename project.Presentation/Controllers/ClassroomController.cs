@@ -8,6 +8,7 @@ using project.Application.Features.Command.Classrooms.Delete;
 using project.Application.Features.Command.Classrooms.DisolveGroup;
 using project.Application.Features.Command.Classrooms.JoinClass;
 using project.Application.Features.Command.Classrooms.ReGenerateInviteCode;
+using project.Application.Features.Command.Classrooms.RemoveStudent;
 using project.Application.Features.Command.Classrooms.Reports;
 using project.Application.Features.Command.Classrooms.Update;
 using project.Application.Features.Command.Group.Create;
@@ -180,6 +181,14 @@ namespace project.Presentation.Controllers
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
-
+        [HttpPut("{classroomId}/enrollment/remove-student")]
+        public async Task<IActionResult> RemoveStudent([FromBody] int studentId,int classroomId)
+        {
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
+            var command = new RemoveStudentCommand(userId.Value,studentId, classroomId);
+            var result = await _sender.Send(command);
+            return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
+        }
     }
 }

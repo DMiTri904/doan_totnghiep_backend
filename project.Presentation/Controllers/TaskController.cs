@@ -110,7 +110,6 @@ namespace project.Presentation.Controllers
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
-        [HttpPost("task/{taskId}/labels/{labelId}")]
         [HttpPut("task/{taskId}/test")]
         public async Task<IActionResult> Test(int taskId)
         {

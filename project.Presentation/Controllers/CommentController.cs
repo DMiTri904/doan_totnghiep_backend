@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using project.Application.Features.Command.Comments.Create;
 using project.Application.Features.Command.Comments.Delete;
 using project.Application.Features.Command.Comments.Update;
-using project.Application.Features.Query.Comment;
+using project.Application.Features.Query.Comments;
 using project.Presentation.Extension;
 using project.Presentation.Models;
 
