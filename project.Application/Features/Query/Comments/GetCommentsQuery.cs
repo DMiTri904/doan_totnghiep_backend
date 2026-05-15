@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace project.Application.Features.Query.Comment
+namespace project.Application.Features.Query.Comments
 {
     public sealed record GetCommentsQuery(int TaskId) : IRequest<Result<IReadOnlyList<CommentModel>>>
     {

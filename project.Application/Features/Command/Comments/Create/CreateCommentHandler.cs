@@ -22,12 +22,10 @@ namespace project.Application.Features.Command.Comments.Create
         private readonly INotificationService _notificationService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClassroomRepository _classRoomRepository;
-        private readonly IMapper _mapper;
         private readonly IUserRepository _userRepository;
-        public CreateCommentHandler(IWorkTaskRepository taskRepository, IMapper mapper, IUnitOfWork unitOfWork, IGroupRepository groupRepository, INotificationService notificationService, IClassroomRepository classRoomRepository, IUserRepository userRepository)
+        public CreateCommentHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IGroupRepository groupRepository, INotificationService notificationService, IClassroomRepository classRoomRepository, IUserRepository userRepository)
         {
             _taskRepository = taskRepository;
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _groupRepository = groupRepository;
             _notificationService = notificationService;
@@ -54,10 +52,21 @@ namespace project.Application.Features.Command.Comments.Create
                     var member = group.FindMember(request.UserId);
                     if (member == null) return Result.Failure<CommentModel>(new Error("403", "Bạn không phải là thành viên trong nhóm"));
                 }
+                var actualParentId = request.ParentCommentId;
+
+                if (request.ParentCommentId.HasValue)
+                {
+                    var parentComment = await _unitOfWork.Repository<Comment>().GetByIdAsync(request.ParentCommentId.Value);
+                    if (parentComment == null) return Result.Failure<CommentModel>(new Error("404", "Không tìm thấy comment cha"));
+
+                    actualParentId = parentComment.ParentCommentId.HasValue
+                        ? parentComment.ParentCommentId.Value  // cha của nó là root
+                        : parentComment.Id;                    // chính nó là root
+                }
 
                 var user = await _userRepository.GetByIdAsync(request.UserId);
 
-                var comment = Comment.Create(request.TaskId, request.UserId, request.Content, request.ParentCommentId);
+                var comment = Comment.Create(request.TaskId, request.UserId, request.Content, actualParentId);
 
                 await _unitOfWork.Repository<Comment>().AddAsync(comment);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -68,7 +77,24 @@ namespace project.Application.Features.Command.Comments.Create
                     var notification = Notification.Create(task.AssignedTo!.Value, $"{user!.UserName} vừa bình luận vào task {task.Title} trong nhóm {group.Name}", null, group.Id, "Comment", comment.Id);
                     await _notificationService.SendNotificationAsync(notification,cancellationToken);
                 }
-                var dto = _mapper.Map<CommentModel>(comment);
+                var dto = new CommentModel
+                {
+                    Id = comment.Id,
+                    Content = comment.Content,
+                    IsDeleted = comment.IsDeleted,
+                    IsEdited = comment.IsEdited,
+                    CreatedAt = comment.CreatedAt,
+                    UpdatedAt = comment.UpdatedAt,
+                    CreatedBy = comment.UserId,
+                    IsTeacher = classRoom.TeacherId == comment.UserId, 
+                    User = new CommentUserModel
+                    {
+                        Id = user!.Id,
+                        Name = user.UserName,
+                        AvatarUrl = user.AvatarUrl
+                    },
+                    Replies = new List<CommentModel>() 
+                };
                 return Result.Success(dto);
 
             }

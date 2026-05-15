@@ -42,7 +42,7 @@ namespace project.Application.Features.Command.Group.Join
             var member = group.FindMember(request.requestedBy);
             if (member != null) return Result.Failure(new Error("403", "Bạn đã là thành viên của nhóm này"));
 
-            var noti = Notification.Create(group.CreatedBy,"Yêu cầu tham gia nhóm", $"Người dùng {enrollments.User.UserName} với mã sinh viên {enrollments.User.Email} muốn tham gia nhóm {group.Name}",group.Id,"Group",group.Id);
+            var noti = Notification.Create(group.CreatedBy,"Yêu cầu tham gia nhóm", $"Người dùng {enrollments.User.UserName} với mã sinh viên {enrollments.User.UserCode} muốn tham gia nhóm {group.Name}",group.Id,"Group",group.Id);
             await _notificationService.SendNotificationAsync(noti,cancellationToken);
             return Result.Success();
         }

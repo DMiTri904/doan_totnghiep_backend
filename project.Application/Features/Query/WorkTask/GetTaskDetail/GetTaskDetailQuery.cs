@@ -20,7 +20,7 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
     {
     }
 
-    public sealed record TaskDetailModel(int Id, string Title, TaskPriority TaskPriority, string? Description, TasksStatus TaskStatus, DateTime? DueDate, DateTime CreatedAt, DateTime? StartDate = null,TimeSpan? Duration = null, PullRequestModel? PR = null, string? Assignee = null);
+    public sealed record TaskDetailModel(int Id, string Title, TaskPriority TaskPriority, string? Description, TasksStatus TaskStatus, DateTime CreatedAt, DateTime? StartDate = null, DateTime? DueDate = null, TimeSpan? Duration = null, PullRequestModel? PR = null, string? Assignee = null);
 
     public sealed class GetTaskDetailHander : IRequestHandler<GetTaskDetailQuery, Result<TaskDetailModel>>
     {
@@ -45,9 +45,8 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
             if (group == null) return Result.Failure<TaskDetailModel>(new Error("404", "Không tìm thấy nhóm"));
             if (!group.IsActive) return Result.Failure<TaskDetailModel>(new Error("403", "Nhóm đã bị vô hiệu hóa"));
 
-            var classRoom = await _classRoomRepository.GetByIdAsync(group.Id);
+            var classRoom = await _classRoomRepository.GetByIdAsync(group.ClassRoomId);
             if (classRoom == null) return Result.Failure<TaskDetailModel>(new Error("404", "Không tìm thấy lớp"));
-
 
             if (classRoom.TeacherId != request.RequestedBy)
             {
@@ -67,11 +66,11 @@ namespace project.Application.Features.Query.WorkTask.GetTaskDetail
                 {
                     pr = await _githubService.GetPRByTaskIdAsync(owner, repo, task.Id);
                 }
-                return new TaskDetailModel(task.Id, task.Title,task.Priority, task.Description, task.Status, task.DueDate!.Value, task.CreatedAt, task.StartDate,task.Duration, pr, task.Assignee.UserName);
+                return new TaskDetailModel(task.Id, task.Title,task.Priority, task.Description, task.Status, task.CreatedAt, task.StartDate, task.DueDate, task.Duration, pr, task.Assignee.UserName);
             }
             else
             {
-                return new TaskDetailModel(task.Id, task.Title,task.Priority, task.Description, task.Status, task.DueDate!.Value, task.CreatedAt, task.StartDate,task.Duration,null,task.Assignee?.UserName);
+                return new TaskDetailModel(task.Id, task.Title,task.Priority, task.Description, task.Status, task.CreatedAt, task.StartDate, task.DueDate,task.Duration,null,task.Assignee?.UserName);
             }
         }
     };

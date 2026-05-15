@@ -44,8 +44,11 @@ namespace project.Application.Features.Command.Reports.ExportGroupPdf
             if (classRoom == null) return Result.Failure<byte[]>(new Error("404", "Không tìm thấy lớp học"));
             if (!classRoom.IsActive) return Result.Failure<byte[]>(new Error("403", "Không thể thêm bình luận vào lớp học bị vô hiệu hóa"));
 
-            var member = group.FindMember(request.RequestedBy);
-            if (member == null || !member.IsActive) return Result.Failure<byte[]>(new Error("403", "Bạn không có quyền truy cập báo cáo này"));
+            if (classRoom.TeacherId != request.RequestedBy)
+            {
+                var member = group.FindMember(request.RequestedBy);
+                if (member == null || !member.IsActive) return Result.Failure<byte[]>(new Error("403", "Bạn không có quyền truy cập báo cáo này"));
+            }
 
             var report = Report.Create(group.Id, request.RequestedBy, $"Báo cáo nhóm {group.Name} - {DateTime.UtcNow:dd/MM/yyyy}");
             await _reportRepository.AddAsync(report);

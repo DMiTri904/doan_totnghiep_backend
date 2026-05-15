@@ -27,13 +27,17 @@ namespace project.Application.Features.Command.Group.Delete
             var group = await _groupRepository.GetByIdWithMemberAsync(request.GroupId);
             if (group == null) return Result.Failure(new Error("404", "Không tìm thấy nhóm"));
 
-            var member = group.FindMember(request.RequetedBy);
-            if (member == null) return Result.Failure(new Error("403", "Bạn không phải là thành viên của nhóm này"));
-            if (!member.IsLeader()) return Result.Failure(new Error("403", "Bạn không phải là trưởng nhóm"));
-
+           
             var classroom = await _classRoomRepository.GetClassroomWithEnrollmentsAsync(group.ClassRoomId);
             if (classroom == null) return Result.Failure(new Error("404", "Không tìm thấy lớp học"));
             if (!classroom.IsActive) return Result.Failure(new Error("403", "Không thể thao tác trên lớp học bị vô hiệu hóa"));
+
+            if (classroom.TeacherId != request.RequetedBy)
+            {
+                var member = group.FindMember(request.RequetedBy);
+                if (member == null) return Result.Failure(new Error("403", "Bạn không phải là thành viên của nhóm này"));
+                if (!member.IsLeader()) return Result.Failure(new Error("403", "Bạn không phải là trưởng nhóm"));
+            }
 
             var enrollment = classroom.FindEnrollment(request.RequetedBy);
             if (enrollment == null || !enrollment.IsActive) return Result.Failure(new Error("403", "Bạn không phải là thành viên trong lớp"));
