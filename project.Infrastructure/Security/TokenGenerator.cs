@@ -96,7 +96,13 @@ namespace project.Infrastructure.Security
 
         public string GenerateResetPasswordToken()
         {
-            return Guid.NewGuid().ToString("N");
+            var randomBytes = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
+            return Convert.ToBase64String(randomBytes)
+                .Replace('+', '-')
+                .Replace('/', '_')
+                .Replace("=", "");
         }
         public int? GetUserIdFromExpiredToken(string token)
         {

@@ -23,13 +23,15 @@ namespace project.Application.Features.Command.Github
         private readonly IUserRepository _userRepository;
         private readonly IMemoryCache _memoryCache;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ITokenEncryptionService _tokenEncryption;
         private readonly string clientUrl;
-        public LinkGithubHandler(IUnitOfWork unitOfWork, IMemoryCache memoryCache, IUserRepository userRepository, IGithubOAuthService github, IConfiguration config)
+        public LinkGithubHandler(IUnitOfWork unitOfWork, IMemoryCache memoryCache, IUserRepository userRepository, IGithubOAuthService github, IConfiguration config, ITokenEncryptionService tokenEncryption)
         {
             _unitOfWork = unitOfWork;
             _memoryCache = memoryCache;
             _userRepository = userRepository;
             _github = github;
+            _tokenEncryption = tokenEncryption;
             clientUrl = config["App:FrontendUrl:0"] ?? throw new ArgumentNullException("Không tìm thấy clientUrl");
         }
 
@@ -55,7 +57,8 @@ namespace project.Application.Features.Command.Github
 
             var user = await _userRepository.FindByEmailAsync(inputEmail);
             if (user == null) return new LinkGithubResult(false, "Không tìm thấy người dùng");
-            user!.LinkGitHubAccount(githubUser.Login, githubUser.Id,accessToken);
+            var encryptedToken = _tokenEncryption.Encrypt(accessToken);
+            user!.LinkGitHubAccount(githubUser.Login, githubUser.Id, encryptedToken);
             user.VerifyGithubAccount();
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

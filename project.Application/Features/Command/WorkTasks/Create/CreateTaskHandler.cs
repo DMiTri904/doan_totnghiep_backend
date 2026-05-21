@@ -25,8 +25,9 @@ namespace project.Application.Features.Command.WorkTasks.Create
         private readonly IGroupRepository _groupRepository;
         private readonly INotificationService _notificationService;
         private readonly IGithubService _githubService;
+        private readonly ITokenEncryptionService _tokenEncryption;
         private readonly IMapper _mapper;
-        public CreateTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IMapper mapper, IGroupRepository groupRepository, INotificationService notificationService, IClassroomRepository classRoomRepository, ITaskHistoryRepository taskHistoryRepository, IGithubService githubService)
+        public CreateTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IMapper mapper, IGroupRepository groupRepository, INotificationService notificationService, IClassroomRepository classRoomRepository, ITaskHistoryRepository taskHistoryRepository, IGithubService githubService, ITokenEncryptionService tokenEncryption)
         {
             _taskRepository = taskRepository;
             _unitOfWork = unitOfWork;
@@ -36,6 +37,7 @@ namespace project.Application.Features.Command.WorkTasks.Create
             _classRoomRepository = classRoomRepository;
             _taskHistoryRepository = taskHistoryRepository;
             _githubService = githubService;
+            _tokenEncryption = tokenEncryption;
         }
 
         public async Task<Result<TaskModel>> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
@@ -97,7 +99,8 @@ namespace project.Application.Features.Command.WorkTasks.Create
                             await _unitOfWork.RollbackAsync(cancellationToken);
                             return Result.Failure<TaskModel>(new Error("400", "Leader chưa liên kết đến Github"));
                         }
-                        var branch = await _githubService.CreateBranchAsync(owner, repo, task.Id, leaderUser.GithubAccessToken);
+                        var accessToken = _tokenEncryption.Decrypt(leaderUser.GithubAccessToken);
+                        var branch = await _githubService.CreateBranchAsync(owner, repo, task.Id, accessToken);
                         if (branch == null)
                         {
                             await _unitOfWork.RollbackAsync(cancellationToken); // ← xóa task vừa tạo

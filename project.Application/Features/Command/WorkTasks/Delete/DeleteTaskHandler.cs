@@ -22,14 +22,16 @@ namespace project.Application.Features.Command.WorkTasks.Delete
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGroupRepository _groupRepository;
         private readonly IGithubService _githubService;
+        private readonly ITokenEncryptionService _tokenEncryption;
         private readonly IClassroomRepository _classRoomRepository;
-        public DeleteTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IGroupRepository groupRepository, IClassroomRepository classRoomRepository, IGithubService githubService)
+        public DeleteTaskHandler(IWorkTaskRepository taskRepository, IUnitOfWork unitOfWork, IGroupRepository groupRepository, IClassroomRepository classRoomRepository, IGithubService githubService, ITokenEncryptionService tokenEncryption)
         {
             _taskRepository = taskRepository;
             _unitOfWork = unitOfWork;
             _groupRepository = groupRepository;
             _classRoomRepository = classRoomRepository;
             _githubService = githubService;
+            _tokenEncryption = tokenEncryption;
         }
         public async Task<Result> Handle(DeleteTaskCommand request, CancellationToken cancellationToken)
         {
@@ -64,7 +66,8 @@ namespace project.Application.Features.Command.WorkTasks.Delete
                     }
 
                     var (owner, repo) = GithubUrlParser.Parse(group.GithubRepoUrl);
-                    var delete = await _githubService.DeleteBranchAsync(owner, repo, task.Id, leaderUser.GithubAccessToken!);
+                    var accessToken = _tokenEncryption.Decrypt(leaderUser.GithubAccessToken);
+                    var delete = await _githubService.DeleteBranchAsync(owner, repo, task.Id, accessToken);
                     if (!delete) return Result.Failure(new Error("400", "Không thể xóa branch"));
                     await _unitOfWork.RollbackAsync(cancellationToken);
                 }

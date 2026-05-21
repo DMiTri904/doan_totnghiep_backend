@@ -29,6 +29,7 @@ namespace project.Application.Features.Command.Auth.Reset
             if (string.IsNullOrEmpty(request.email)) return Result.Failure(new Error("400", "Email đang trống"));
             if (string.IsNullOrEmpty(request.passwordConfirm) || string.IsNullOrEmpty(request.newPassword)) return Result.Failure(new Error("400", "Mật khẩu đang trống"));
             if (!string.Equals(request.newPassword, request.passwordConfirm)) return Result.Failure(new Error("400", "Mật khẩu không trùng nhau"));
+            if (request.newPassword.Length < 8) return Result.Failure(new Error("400", "Mật khẩu phải có ít nhất 8 ký tự"));
 
             var user = await _userRepository.FindByEmailAsync(request.email);
             if (user == null) return Result.Failure(new Error("404", "Không tìm thấy người dùng"));

@@ -18,6 +18,7 @@ using project.Infrastructure.Services.Gemini;
 using project.Infrastructure.Services.GithubService;
 using project.Infrastructure.Services.Photo;
 using project.Infrastructure.Services.ReportPdf;
+using project.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -136,6 +137,9 @@ namespace project.Infrastructure.Depedencies
             // FiLE STORAGE
             services.Configure<FileStorageOptions>(config.GetSection(FileStorageOptions.SectionName));
             services.AddScoped<IFileStorageService, FileStorageService>();
+
+            // TOKEN ENCRYPTION
+            services.AddScoped<ITokenEncryptionService, TokenEncryptionService>();
             return services;
         }
     }

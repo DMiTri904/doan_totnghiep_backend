@@ -34,14 +34,15 @@ namespace project.Application.Features.Command.Auth.Forgot
             var user = await _userRepository.FindByEmailAsync(request.email);
             if (user == null) return Result.Failure(new Error("404", $"Không tìm thấy người dùng với email {request.email}"));
 
+            user.ClearResetPasswordToken();
+
             var token = _tokenGenerator.GenerateResetPasswordToken();
             var expiry = DateTime.UtcNow.AddMinutes(15);
 
             user.SetResetPasswordToken(token, expiry);
-            _unitOfWork.Repository<UserApp>();
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var resetLink = $"{request.clientUri}?email={request.email}&token={Uri.EscapeDataString(token)}";
+            var resetLink = $"{request.clientUri}?token={Uri.EscapeDataString(token)}";
             var body = $"Nhấn vào link để đặt lại mật khẩu: <a href='{resetLink}'>Đặt lại mật khẩu</a><br/>Link hết hạn sau 15 phút.";
             var message = new Message([user.Email], "Đặt lại mật khẩu", body);
             await _emailService.SendEmail(message);
