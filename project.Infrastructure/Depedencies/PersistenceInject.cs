@@ -35,10 +35,10 @@ namespace project.Infrastructure.Depedencies
         public static IServiceCollection AddConnectionDatabase(this IServiceCollection services, IConfiguration config)
         {
             var connectionString = config.GetConnectionString("DefaultConnection");
-            services.AddDbContext<ApplicationDbContext>(opt =>
+            services.AddDbContextPool<ApplicationDbContext>(opt =>
             {
                 opt.UseSqlServer(connectionString);
-            });
+            }, poolSize: 128);
 
             return services;
         }
