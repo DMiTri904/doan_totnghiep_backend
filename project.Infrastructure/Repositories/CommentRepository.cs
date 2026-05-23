@@ -21,7 +21,7 @@ namespace project.Infrastructure.Repositories
                         .FirstOrDefaultAsync(c => c.TaskId == taskId && !c.IsDeleted);
         }
 
-        public async Task<IReadOnlyList<Comment?>> GetCommentsByTaskIdAsync(int taskId)
+        public async Task<IReadOnlyList<Comment>> GetCommentsByTaskIdAsync(int taskId)
         {
             return await _context.Comment
                 .Where(c => c.TaskId == taskId && !c.IsDeleted)
