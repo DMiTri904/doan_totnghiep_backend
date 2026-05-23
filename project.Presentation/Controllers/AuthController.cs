@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using project.Application.Features.Command.Auth.Forgot;
 using project.Application.Features.Command.Auth.Login;
 using project.Application.Features.Command.Auth.Refresh;
@@ -18,6 +19,7 @@ namespace project.Presentation.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("LoginPolicy")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
             var command = new LoginCommand(request.MSSV, request.Password);

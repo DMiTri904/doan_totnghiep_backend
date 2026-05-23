@@ -199,9 +199,5 @@ namespace project.Domain.Models
         {
             return _members.Any(m => m.Role == GroupMemberRole.Leader && m.IsActive);
         }
-        public int CountMemberWithoutGroup()
-        {
-            return _members.Count(c => c.Group == null);
-        }
     }
 }

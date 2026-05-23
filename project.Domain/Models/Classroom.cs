@@ -15,7 +15,7 @@ namespace project.Domain.Models
         public string ClassCode { get; private set; } = string.Empty; // invite student
         public string SubjectName { get; private set; } = string.Empty;
         public int TeacherId { get; private set; }
-        public UserApp Teacher { get; private set; }
+        public UserApp? Teacher { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public MajorType MajorType { get; private set; }
         public int MaxMembersPerGroup { get; private set; }
