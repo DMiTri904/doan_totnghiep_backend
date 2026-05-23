@@ -7,6 +7,7 @@ using project.Domain.Models;
 using project.Infrastructure.Database;
 using project.Infrastructure.Depedencies;
 using project.Presentation.Dependencies;
+    using project.Presentation.Middleware;
 using project.Presentation.Signalr;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -61,6 +62,7 @@ namespace project.Presentation
                 await seeder.SeedAsync();
 
             }
+            app.UseGlobalExceptionMiddleware();
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseRouting();
