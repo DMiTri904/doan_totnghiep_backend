@@ -33,6 +33,9 @@ namespace project.Infrastructure.Services.NotificationSignalr
                 notification.Body,
                 notification.CreatedAt,
                 notification.IsRead,
+                notification.GroupId,
+                notification.RelatedEntityType,
+                notification.RelatedEntityId,
             });
         }
     }
