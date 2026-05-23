@@ -15,7 +15,7 @@ namespace project.Infrastructure.Services.ReportPdf
 {
     public class ReportService : IReportService
     {
-        public Task<byte[]> ExportToPdfAsync(GroupReportModel report)
+        public async Task<byte[]> ExportToPdfAsync(GroupReportModel report)
         {
             QuestPDF.Settings.License = LicenseType.Community;
             var document = Document.Create(container =>
@@ -133,7 +133,8 @@ namespace project.Infrastructure.Services.ReportPdf
             });
             });
 
-            return Task.FromResult(document.GeneratePdf());
+            var pdf = await Task.Run(() => document.GeneratePdf());
+            return pdf;
         }
     }
 }
