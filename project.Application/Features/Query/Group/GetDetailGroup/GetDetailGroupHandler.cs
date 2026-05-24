@@ -28,7 +28,6 @@ namespace project.Application.Features.Query.Group.GetDetailGroup
             
             var group = await _groupRepository.GetByIdWithDetailAsync(request.GroupId);
             if (group == null) return Result.Failure<GroupDetailModel>(new Error("404", "Không tìm thấy nhóm"));
-            if (!group.IsActive) return Result.Failure<GroupDetailModel>(new Error("403", "Nhóm đã bị vô hiệu hóa"));
 
             var classroom = await _classRoomRepository.GetByIdAsync(group.ClassRoomId);
             if (classroom == null) return Result.Failure<GroupDetailModel>(new Error("404", "Không tìm thấy lớp học"));
