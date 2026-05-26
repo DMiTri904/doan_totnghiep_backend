@@ -29,7 +29,6 @@ namespace project.Application.Features.Query.Classrooms.GetEnrollmentByClassId
 
             var classroom = await _classRoomRepository.GetClassroomWithEnrollmentsAsync(request.ClassId);
             if (classroom == null) return Result.Failure<ClassroomEnrollmentModel>(new Error("404", "Tài khoản này đã bị khóa"));
-            if (!classroom.IsActive) return Result.Failure<ClassroomEnrollmentModel>(new Error("404", "Lớp học này đã bị khóa"));
 
             var enrollment = classroom.FindEnrollment(request.RequestedBy);
             if (enrollment == null) return Result.Failure<ClassroomEnrollmentModel>(new Error("403", "Bạn không có quyền truy cập thông tin này"));
