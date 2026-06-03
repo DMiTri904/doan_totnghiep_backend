@@ -56,8 +56,6 @@ namespace project.Application.Features.Command.WorkTasks.Create
 
                 var leader = group.FindMember(request.RequestedBy);
                 if (leader == null) return Result.Failure<TaskModel>(new Error("403", "Bạn không phải là người trong nhóm"));
-                if (!leader.IsLeader()) return Result.Failure<TaskModel>(new Error("403", "Chỉ có leader được phép gắn task"));
-
 
                 var assigneeId = request.AssignedTo;
                 if (assigneeId.HasValue)
