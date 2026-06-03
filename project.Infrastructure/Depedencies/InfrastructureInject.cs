@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,20 @@ namespace project.Infrastructure.Depedencies
                 .AddRepositories()
                 .AddAuthentication(config)
                 .AddMemoryCache()
-                .AddExternalService(config);
+                .AddExternalService(config)
+                .AddProtection(config);
+            return services;
+        }
+    }
+    public static class DataProtectionInject
+    {
+        public static IServiceCollection AddProtection(this  IServiceCollection services, IConfiguration config)
+        {
+            var keysPath = config["DataProtection:KeysPath"] ?? "DataProtectionKeys";
+            services.AddDataProtection()
+             .SetApplicationName("graduation-be")
+             .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+
             return services;
         }
     }
