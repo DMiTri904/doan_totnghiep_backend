@@ -23,6 +23,6 @@ jobs:
 
       - name: Build and Push
         run: |
-          dotnet publish src/project.Presentation/project.Presentation.csproj -c Release -o ./publish
+          dotnet publish project.Presentation/project.Presentation.csproj -c Release -o ./publish
           docker build -t ${{ secrets.DOCKER_USERNAME }}/myapi:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/myapi:latest
