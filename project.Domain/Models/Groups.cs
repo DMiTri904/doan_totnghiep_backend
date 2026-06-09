@@ -137,6 +137,7 @@ namespace project.Domain.Models
         }
         public void AddMember(GroupMem member, Classroom classroom, int RequestedBy)
         {
+            if (IsFull()) throw new DomainException("Nhóm đã đạt giới hạn thành viên");
             var enrollment = classroom.FindEnrollment(member.UserId);
             if (enrollment == null) throw new DomainException("Người được thêm không phải là thành viên của lớp học");
             if (enrollment.GroupId != null) throw new DomainException("Thành viên này đã có nhóm");
@@ -153,7 +154,6 @@ namespace project.Domain.Models
                 return;
             }
 
-            if (IsFull()) throw new DomainException("Nhóm đã đạt giới hạn thành viên");
             _members.Add(member);
 
         }
