@@ -16,12 +16,14 @@ namespace project.Application.Features.Command.Classrooms.RemoveStudent
     internal sealed class RemoveStudentHandler : IRequestHandler<RemoveStudentCommand, Result>
     {
         private readonly IClassroomRepository _classRoomRepository;
+        private readonly IGroupRepository _groupRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public RemoveStudentHandler(IClassroomRepository classRoomRepository, IUnitOfWork unitOfWork)
+        public RemoveStudentHandler(IClassroomRepository classRoomRepository, IUnitOfWork unitOfWork, IGroupRepository groupRepository)
         {
             _classRoomRepository = classRoomRepository;
             _unitOfWork = unitOfWork;
+            _groupRepository = groupRepository;
         }
 
         public async Task<Result> Handle(RemoveStudentCommand request, CancellationToken cancellationToken)
@@ -34,10 +36,19 @@ namespace project.Application.Features.Command.Classrooms.RemoveStudent
             var student = classRoom.FindEnrollment(request.StudentId);
             if (student == null) return Result.Failure(new Error("404", "Không tìm thấy sinh viên"));
 
-            classRoom.RemoveStudent(student);
-            await _unitOfWork.Repository<Classroom>().UpdateAsync(classRoom);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
+            if (student.GroupId.HasValue)
+            {
+                var group = await _groupRepository.GetByIdAsync(student.GroupId.Value);
+                if (group != null)
+                {
+                    var member = group.FindMember(request.StudentId);
+                    member?.Leave();
+                    classRoom.RemoveStudent(student);
+                    await _unitOfWork.Repository<Groups>().UpdateAsync(group);
+                    await _unitOfWork.Repository<Classroom>().UpdateAsync(classRoom);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+            }
             return Result.Success();
 
         }
