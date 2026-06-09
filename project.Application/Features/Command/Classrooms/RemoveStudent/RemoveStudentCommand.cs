@@ -38,17 +38,17 @@ namespace project.Application.Features.Command.Classrooms.RemoveStudent
 
             if (student.GroupId.HasValue)
             {
-                var group = await _groupRepository.GetByIdAsync(student.GroupId.Value);
+                var group = await _groupRepository.GetByIdWithMemberAsync(student.GroupId.Value);
                 if (group != null)
                 {
                     var member = group.FindMember(request.StudentId);
                     member?.Leave();
-                    classRoom.RemoveStudent(student);
                     await _unitOfWork.Repository<Groups>().UpdateAsync(group);
-                    await _unitOfWork.Repository<Classroom>().UpdateAsync(classRoom);
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
                 }
             }
+            classRoom.RemoveStudent(student);
+            await _unitOfWork.Repository<Classroom>().UpdateAsync(classRoom);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Success();
 
         }
