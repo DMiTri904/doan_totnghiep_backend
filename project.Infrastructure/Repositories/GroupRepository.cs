@@ -23,7 +23,7 @@ namespace project.Infrastructure.Repositories
         {
             return await _context.Groups
                .Where(x => x.Members.Any(x => x.UserId == userId && x.IsActive))
-               .Include(g => g.Members)
+               .Include(g => g.Members.Where(x => x.IsActive))
                .ThenInclude(g => g.User)
                .Include(g => g.Classroom)
                .Include(g => g.Tasks)
