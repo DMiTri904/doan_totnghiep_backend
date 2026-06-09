@@ -57,12 +57,11 @@ namespace project.Application.Features.Command.Reports.ExportGroupPdf
             {
                 report.StartGenerating();
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
-
                 GroupReportModel reportDto;
 
-                var totalGroupCompletedTasks = group.Members
-                                                .SelectMany(m => m.User.AssignedTasks)
-                                                .Count(t => t.Status == TasksStatus.Done);
+                var activeMembers = group.Members.Where(m => m.IsActive).ToList();
+
+                var totalGroupCompletedTasks = activeMembers.Sum(m => m.Contribution);
 
                 if (group.MajorType == MajorType.General)
                 {
@@ -70,20 +69,21 @@ namespace project.Application.Features.Command.Reports.ExportGroupPdf
                     {
                         GroupName = group.Name,
                         ExportedAt = DateTime.UtcNow,
-                        Members = group.Members.Select(m =>
+                        Members = activeMembers.Select(m =>
                         {
-                            var memberCompleted = m.User.AssignedTasks.Count(t => t.Status == TasksStatus.Done);
+                            var groupTasks = m.User.AssignedTasks.Where(t => t.GroupId == group.Id).ToList();
+
                             return new MemberReportModel
                             {
                                 Name = m.User.UserName,
-                                TotalTasks = m.User.AssignedTasks.Count,
-                                CompletedTasks = memberCompleted,
-                                InProgressTasks = m.User.AssignedTasks.Count(t => t.Status == TasksStatus.InProgress),
-                                TestTasks = m.User.AssignedTasks.Count(t => t.Status == TasksStatus.Test),
-                                TodoTasks = m.User.AssignedTasks.Count(t => t.Status == TasksStatus.ToDo),
-                                OverdueTasks = m.User.AssignedTasks.Count(t => t.IsOverdue()),
+                                TotalTasks = groupTasks.Count,
+                                CompletedTasks = m.Contribution,
+                                InProgressTasks = groupTasks.Count(t => t.Status == TasksStatus.InProgress),
+                                TestTasks = groupTasks.Count(t => t.Status == TasksStatus.Test),
+                                TodoTasks = groupTasks.Count(t => t.Status == TasksStatus.ToDo),
+                                OverdueTasks = groupTasks.Count(t => t.IsOverdue()),
                                 ContributionScore = totalGroupCompletedTasks > 0
-                                    ? Math.Round((double)memberCompleted / totalGroupCompletedTasks * 100, 2)
+                                    ? Math.Round((double)m.Contribution / totalGroupCompletedTasks * 100, 2)
                                     : 0
                             };
                         }).ToList()
@@ -91,9 +91,12 @@ namespace project.Application.Features.Command.Reports.ExportGroupPdf
                 }
                 else
                 {
-                    if (group.GithubRepoUrl == null) return Result.Failure<byte[]>(new Error("403", "Nhóm chưa liên kết đến github"));
+                    if (group.GithubRepoUrl == null)
+                        return Result.Failure<byte[]>(new Error("403", "Nhóm chưa liên kết đến github"));
+
                     var (owner, repo) = GithubUrlParser.Parse(group.GithubRepoUrl);
-                    var memberCommits = await Task.WhenAll(group.Members.Select(async m =>
+
+                    var memberCommits = await Task.WhenAll(activeMembers.Select(async m =>
                     {
                         var commit = m.User.GithubUserName != null
                             ? await _githubService.GetTotalCommitAsync(owner, repo, m.User.GithubUserName!)
@@ -109,25 +112,25 @@ namespace project.Application.Features.Command.Reports.ExportGroupPdf
                         ExportedAt = DateTime.UtcNow,
                         Members = memberCommits.Select(mc =>
                         {
-                            var memberCompleted = mc.Member.User.AssignedTasks.Count(t => t.Status == TasksStatus.Done);
+                            var groupTasks = mc.Member.User.AssignedTasks
+                                            .Where(t => t.GroupId == group.Id) 
+                                            .ToList();
 
                             var taskScore = totalGroupCompletedTasks > 0
-                                ? (double)memberCompleted / totalGroupCompletedTasks * 100
-                                : 0;
+                                ? (double)mc.Member.Contribution / totalGroupCompletedTasks * 100 : 0;
                             var commitScore = totalGroupCommits > 0
-                                ? (double)mc.CommitCount / totalGroupCommits * 100
-                                : 0;
+                                ? (double)mc.CommitCount / totalGroupCommits * 100 : 0;
 
                             return new MemberReportModel
                             {
                                 Name = mc.Member.User.UserName,
-                                TotalTasks = mc.Member.User.AssignedTasks.Count,
-                                CompletedTasks = memberCompleted,
-                                InProgressTasks = mc.Member.User.AssignedTasks.Count(t => t.Status == TasksStatus.InProgress),
-                                TestTasks = mc.Member.User.AssignedTasks.Count(t => t.Status == TasksStatus.Test),
-                                TodoTasks = mc.Member.User.AssignedTasks.Count(t => t.Status == TasksStatus.ToDo),
-                                OverdueTasks = mc.Member.User.AssignedTasks.Count(t => t.IsOverdue()),
-                                ContributionScore = Math.Round(taskScore * 0.5 + commitScore * 0.5, 2)
+                                TotalTasks = groupTasks.Count,
+                                CompletedTasks = mc.Member.Contribution,
+                                InProgressTasks = groupTasks.Count(t => t.Status == TasksStatus.InProgress),
+                                TestTasks = groupTasks.Count(t => t.Status == TasksStatus.Test),
+                                TodoTasks = groupTasks.Count(t => t.Status == TasksStatus.ToDo),
+                                OverdueTasks = groupTasks.Count(t => t.IsOverdue()),
+                                ContributionScore = Math.Round(taskScore * 0.6 + commitScore * 0.4, 2)
                             };
                         }).ToList()
                     };
