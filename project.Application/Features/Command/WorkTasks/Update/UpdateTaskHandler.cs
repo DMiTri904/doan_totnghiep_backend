@@ -37,6 +37,11 @@ namespace project.Application.Features.Command.WorkTasks.Update
 
             try
             {
+                if (request.DueDate.HasValue)
+                {
+                    if (request.DueDate.Value < DateTime.UtcNow) return Result.Failure<TaskModel>(new Error("404", "Ngày đến hạn phải là ngày trong tương lai"));
+                }
+
                 var task = await _taskRepository.GetByIdAsync(request.Id);
                 if (task == null) return Result.Failure<TaskModel>(new Error("404", "Không tìm thấy task"));
 
