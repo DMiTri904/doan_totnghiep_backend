@@ -42,7 +42,7 @@ namespace project.Presentation.Controllers
         }
 
         [HttpPut("{classroomId}/activate")]
-        [Authorize(Roles = "Teacher")]
+        [Authorize(Roles = "Teacher")]  
         public async Task<IActionResult> ActivateClassroom(int classroomId)
         {
             var userId = User.GetUserId();
@@ -73,7 +73,6 @@ namespace project.Presentation.Controllers
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
-
         [HttpPost("join")]
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> JoinClassRoom([FromBody] JoinClassRequest request)
@@ -182,11 +181,11 @@ namespace project.Presentation.Controllers
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
         [HttpPut("{classroomId}/enrollment/remove-student")]
-        public async Task<IActionResult> RemoveStudent([FromBody] int studentId,int classroomId)
+        public async Task<IActionResult> RemoveStudent([FromBody] RemoveStudentRequest request,int classroomId)
         {
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
-            var command = new RemoveStudentCommand(userId.Value,studentId, classroomId);
+            var command = new RemoveStudentCommand(userId.Value,request.StudentId, classroomId);
             var result = await _sender.Send(command);
             return result.IsSuccess ? Ok(result) : BadRequest(result.Error);
         }
