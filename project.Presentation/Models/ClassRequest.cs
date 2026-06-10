@@ -29,4 +29,8 @@ namespace project.Presentation.Models
      request.ClassName, request.SubjectName,
  request.MajorType, request.MaxMembersPerGroup, userId.Value
      */
+    public class RemoveStudentRequest
+    {
+        public int StudentId { get; set; }
+    }
 }
