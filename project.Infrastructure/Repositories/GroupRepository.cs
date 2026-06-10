@@ -22,7 +22,7 @@ namespace project.Infrastructure.Repositories
         public async Task<List<Groups>> GetAllGroupsByUserIdAsync(int userId)
         {
             return await _context.Groups
-               .Where(x => x.Members.Any(x => x.UserId == userId && x.IsActive))
+               .Where(x => x.Members.Any(x => x.UserId == userId && x.IsActive) && x.Classroom.Enrollments.Any(e => e.UserId == userId && e.IsActive))
                .Include(g => g.Members.Where(x => x.IsActive))
                .ThenInclude(g => g.User)
                .Include(g => g.Classroom)
