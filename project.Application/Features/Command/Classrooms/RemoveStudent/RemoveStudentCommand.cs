@@ -31,7 +31,7 @@ namespace project.Application.Features.Command.Classrooms.RemoveStudent
             var classRoom = await _classRoomRepository.GetClassroomWithEnrollmentsAsync(request.ClassId);
             if (classRoom == null) return Result.Failure(new Error("404", "Không tìm thấy lớp"));
 
-            if (classRoom.TeacherId != request.RequestedBy) return Result.Failure(new Error("404", "Chỉ giáo viên của lớp được thực hiện chức năng này"));
+            if (classRoom.TeacherId != request.RequestedBy) return Result.Failure(new Error("403", "Chỉ giáo viên của lớp được thực hiện chức năng này"));
 
             var student = classRoom.FindEnrollment(request.StudentId);
             if (student == null) return Result.Failure(new Error("404", "Không tìm thấy sinh viên"));
@@ -41,7 +41,7 @@ namespace project.Application.Features.Command.Classrooms.RemoveStudent
                 var group = await _groupRepository.GetByIdWithMemberAsync(student.GroupId.Value);
                 if (group != null)
                 {
-                    var member = group.FindMember(request.StudentId);
+                    var member = group.FindMember(student.UserId);
                     member?.Leave();
                     await _unitOfWork.Repository<Groups>().UpdateAsync(group);
                 }
