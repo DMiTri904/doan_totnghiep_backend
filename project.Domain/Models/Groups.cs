@@ -155,7 +155,10 @@ namespace project.Domain.Models
             }
 
             _members.Add(member);
-
+        }
+        public void RemoveMember(GroupMem member)
+        {
+            _members.Remove(member);
         }
         private bool IsFull() => _members.Count(m => m.IsActive) >= LimitedUser;
         public GroupMem? FindMember(int userId)
