@@ -42,7 +42,8 @@ namespace project.Application.Features.Command.Classrooms.RemoveStudent
                 if (group != null)
                 {
                     var member = group.FindMember(student.UserId);
-                    member?.Leave();
+                    if (member == null) return Result.Failure(new Error("403", "Không tìm thấy sinh viên này"));
+                    group.RemoveMember(member);
                     await _unitOfWork.Repository<Groups>().UpdateAsync(group);
                 }
             }
