@@ -162,10 +162,6 @@ namespace project.Domain.Models
         {
             return _enrollments.Count(e => e.IsActive && e.UserRole == UserRole.Student);
         }
-        //public int CountClassEnrollmentsWithoutGroup()
-        //{
-        //    return _enrollments.Count(e => e.User.Id )
-        //}
         public int CountStudentsWithoutGroup()
         {
             return _enrollments.Count(e => e.IsActive && e.GroupId == null && e.UserRole == UserRole.Student);
