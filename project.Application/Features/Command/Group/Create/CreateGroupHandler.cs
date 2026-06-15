@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace project.Application.Features.Command.Group.Create
 {
@@ -40,15 +41,19 @@ namespace project.Application.Features.Command.Group.Create
                 if (enrollment == null) return Result.Failure<GroupModel>(new Error("403", "Bạn không phải thành viên của lớp"));
                 if (enrollment.GroupId != null) return Result.Failure<GroupModel>(new Error("400", "Sinh viên chỉ được tạo một nhóm"));
                 
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
                 var group = Groups.Create(request.NameGroup, request.SubjectName, request.CreateBy, request.LimitedUser, classRoom.MajorType,classRoom.Id,enrollment.Id);
-                var leader = GroupMem.Create(group, request.CreateBy, GroupMemberRole.Leader);
+                await _groupRepository.AddAsync(group);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                var leader = GroupMem.Create(group,request.CreateBy, GroupMemberRole.Leader);
                 group.InitLeader(leader, classRoom);
                 enrollment.SetGroup(group.Id);
 
                 await _classRoomRepository.UpdateAsync(classRoom);
-                await _groupRepository.AddAsync(group);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                await _unitOfWork.CommitAsync(cancellationToken);
 
                 var dto = _mapper.Map<GroupModel>(group);
 
@@ -56,6 +61,7 @@ namespace project.Application.Features.Command.Group.Create
             }
             catch(DomainException ex)
             {
+                await _unitOfWork.RollbackAsync(cancellationToken);
                 return Result.Failure<GroupModel>(new Error("401", $"{ex.Message}"));
             }
         }
