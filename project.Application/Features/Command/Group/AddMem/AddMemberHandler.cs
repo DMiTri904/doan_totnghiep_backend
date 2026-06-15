@@ -37,9 +37,10 @@ namespace project.Application.Features.Command.Group.AddMem
                 var classroom = await _classRoomRepository.GetClassroomWithEnrollmentsAsync(group.ClassRoomId);
                 if (classroom == null) return Result.Failure(new Error("404", "Không tìm thấy lớp học"));
 
-                var member = GroupMem.Create(group, request.UserId);
+                var member = GroupMem.Create(group,request.UserId);
                 group.AddMember(member, classroom, request.RequestedBy);
 
+                await _unitOfWork.Repository<Groups>().UpdateAsync(group);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 var notification = Notification.Create(request.UserId, $"Bạn được thêm vào nhóm {group.Name}", null, request.GroupId, "Group", request.GroupId);
