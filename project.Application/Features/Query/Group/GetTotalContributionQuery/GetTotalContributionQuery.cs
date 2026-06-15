@@ -57,82 +57,79 @@ namespace project.Application.Features.Query.Group.GetTotalContributionQuery
                 //    return (Member: m, CommitCount: commit);
                 //}));
 
-                //var tasks = group.Members
-                //            .Where(c => c.IsActive)
-                //            .Select(async m =>
-                //            {
-                //                var commit = 0;
-                //                var total = 0.0;
-                //                if (m.User.GithubUserName != null)
-                //                {
-                //                    commit = await _githubService.GetTotalCommitAsync(owner, repo, m.User.GithubUserName);
-                //                    total = m.CalculateTotalContributionITStudent(commit);
-                //                }
-                //                return new MemberContributionModel
-                //                {
-                //                    GithubUserName = m.User.GithubUserName,
-                //                    UserName = m.User.UserName,
-                //                    TotalCommit = commit,
-                //                    TotalContribution = total,
-                //                };
-                //            });
+                var tasks = group.Members
+                            .Where(c => c.IsActive)
+                            .Select(async m =>
+                            {
+                                var commit = 0;
+                                var total = 0.0;
+                                if (m.User.GithubUserName != null)
+                                {
+                                    commit = await _githubService.GetTotalCommitAsync(owner, repo, m.User.GithubUserName);
+                                    total = m.CalculateTotalContributionITStudent(commit);
+                                }
+                                return new MemberContributionModel
+                                {
+                                    GithubUserName = m.User.GithubUserName,
+                                    UserName = m.User.UserName,
+                                    TotalCommit = commit,
+                                    TotalContribution = total,
+                                };
+                            });
 
-                var memberCommits = await Task.WhenAll(group.Members
-                    .Where(c => c.IsActive)
-                    .Select(async m =>
-                    {
-                        var commit = m.User.GithubUserName != null
-                            ? await _githubService.GetTotalCommitAsync(owner, repo, m.User.GithubUserName!)
-                            : 0;
-                        return (Member: m, CommitCount: commit);
-                    }));
+                //var memberCommits = await Task.WhenAll(group.Members
+                //    .Where(c => c.IsActive)
+                //    .Select(async m =>
+                //    {
+                //        var commit = m.User.GithubUserName != null
+                //            ? await _githubService.GetTotalCommitAsync(owner, repo, m.User.GithubUserName!)
+                //            : 0;
+                //        return (Member: m, CommitCount: commit);
+                //    }));
 
-                var totalGroupCommits = memberCommits.Sum(mc => mc.CommitCount);
+                //var totalGroupCommits = memberCommits.Sum(mc => mc.CommitCount);
 
-                // Cần totalGroupCompletedTasks tương tự Export Report
-                var totalGroupCompletedTasks = memberCommits.Sum(mc => mc.Member.Contribution);
+                //// Cần totalGroupCompletedTasks tương tự Export Report
+                //var totalGroupCompletedTasks = memberCommits.Sum(mc => mc.Member.Contribution);
 
-                var result = memberCommits.Select(mc =>
-                {
-                    var memberCompleted = mc.Member.Contribution;
+                //var result = memberCommits.Select(mc =>
+                //{
+                //    var memberCompleted = mc.Member.Contribution;
 
-                    var taskScore = totalGroupCompletedTasks > 0
-                        ? (double)memberCompleted / totalGroupCompletedTasks * 100 : 0;
+                //    var taskScore = totalGroupCompletedTasks > 0
+                //        ? (double)memberCompleted / totalGroupCompletedTasks * 100 : 0;
 
-                    var commitScore = totalGroupCommits > 0
-                        ? (double)mc.CommitCount / totalGroupCommits * 100 : 0;
+                //    var commitScore = totalGroupCommits > 0
+                //        ? (double)mc.CommitCount / totalGroupCommits * 100 : 0;
 
-                    var contributionScore = Math.Round(taskScore * 0.6 + commitScore * 0.4, 2);
+                //    var contributionScore = Math.Round(taskScore * 0.6 + commitScore * 0.4, 2);
 
-                    return new MemberContributionModel
-                    {
-                        GithubUserName = mc.Member.User.GithubUserName,
-                        UserName = mc.Member.User.UserName,
-                        TotalCommit = mc.CommitCount,
-                        TotalContribution = contributionScore, // giờ dùng cùng công thức
-                    };
-                }).ToList();
+                //    return new MemberContributionModel
+                //    {
+                //        GithubUserName = mc.Member.User.GithubUserName,
+                //        UserName = mc.Member.User.UserName,
+                //        TotalCommit = mc.CommitCount,
+                //        TotalContribution = contributionScore, // giờ dùng cùng công thức
+                //    };
+                //}).ToList();
 
-                //var result = await Task.WhenAll(tasks);
+                var result = await Task.WhenAll(tasks);
                 return Result.Success<IReadOnlyList<MemberContributionModel>>(result.OrderByDescending(c => c.TotalContribution).ToList());
             }
             else // Caculate General Students
             {
                 var activeMembers = group.Members.Where(c => c.IsActive).ToList();
 
-                var totalGroupCompletedTasks = activeMembers.Sum(m => m.Contribution);
+                //var totalGroupCompletedTasks = activeMembers.Sum(m => m.Contribution);
 
                 var result = activeMembers.Select(m =>
                 {
-                    var contributionScore = totalGroupCompletedTasks > 0
-                        ? Math.Round((double)m.Contribution / totalGroupCompletedTasks * 100, 2)
-                        : 0;
 
                     return new MemberContributionModel
                     {
                         GithubUserName = m.User.GithubUserName,
                         UserName = m.User.UserName,
-                        TotalContribution = contributionScore,
+                        TotalContribution = m.CalculateTotalContributionGeneralStudent(),
                     };
                 });
                 return Result.Success<IReadOnlyList<MemberContributionModel>>(result.OrderByDescending(c => c.TotalContribution).ToList());
