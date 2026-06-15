@@ -151,14 +151,20 @@ namespace project.Domain.Models
             {
                 if (existing.IsActive) throw new DomainException("Người dùng đã là thành viên");
                 existing.Rejoin(); // reactivate thay vì tạo mới
+                enrollment.SetGroup(this.Id);
                 return;
             }
 
             _members.Add(member);
+            enrollment.SetGroup(this.Id);
         }
         public void RemoveMember(GroupMem member)
         {
             _members.Remove(member);
+        }
+        public GroupMem? FindOldestMember()
+        {
+            return _members.OrderBy(x => x.JoinedAt).FirstOrDefault();
         }
         private bool IsFull() => _members.Count(m => m.IsActive) >= LimitedUser;
         public GroupMem? FindMember(int userId)
